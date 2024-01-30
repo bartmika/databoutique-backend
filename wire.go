@@ -28,6 +28,7 @@ import (
 	ds_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/datastore"
 	ds_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
+	ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	ds_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
 	ds_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/datastore"
 	ds_user "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
@@ -39,6 +40,7 @@ import (
 	uc_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	uc_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
+	uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
 	uc_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/controller"
 	uc_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/controller"
 	uc_user "github.com/bartmika/databoutique-backend/internal/app/user/controller"
@@ -50,6 +52,7 @@ import (
 	http_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	http_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
+	http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	http_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	http_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	http_user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
@@ -93,6 +96,7 @@ func InitializeEvent() Application {
 		ds_assistantthread.NewDatastore,
 		ds_assistantmessage.NewDatastore,
 		ds_programcategory.NewDatastore,
+		ds_program.NewDatastore,
 
 		// USECASE
 		uc_tenant.NewController,
@@ -105,6 +109,7 @@ func InitializeEvent() Application {
 		uc_assistantthread.NewController,
 		uc_assistantmessage.NewController,
 		uc_programcategory.NewController,
+		uc_program.NewController,
 
 		// HTTP TRANSPORT SECTION
 		http_tenant.NewHandler,
@@ -117,6 +122,7 @@ func InitializeEvent() Application {
 		http_assistantthread.NewHandler,
 		http_assistantmessage.NewHandler,
 		http_programcategory.NewHandler,
+		http_program.NewHandler,
 
 		// INPUT PORT SECTION
 		http_middleware.NewMiddleware,
