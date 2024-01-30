@@ -28,7 +28,7 @@ import (
 	ds_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/datastore"
 	ds_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
 
-	// ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
 	// ds_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
 	// ds_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
@@ -43,7 +43,7 @@ import (
 	uc_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/controller"
 	uc_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
 
-	// uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
+	uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
 	// uc_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
 	// uc_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
@@ -60,7 +60,7 @@ import (
 	http_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	http_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
 
-	// http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
 	// http_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
 	// http_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
@@ -113,7 +113,7 @@ func InitializeEvent() Application {
 		// ds_fileinfo.NewDatastore,
 		// ds_folderinfo.NewDatastore,
 		ds_program.NewDatastore,
-		// ds_exec.NewDatastore,
+		ds_exec.NewDatastore,
 
 		// USECASE
 		uc_tenant.NewController,
@@ -129,7 +129,7 @@ func InitializeEvent() Application {
 		// uc_fileinfo.NewController,
 		// uc_folderinfo.NewController,
 		uc_program.NewController,
-		// uc_exec.NewController,
+		uc_exec.NewController,
 
 		// HTTP TRANSPORT SECTION
 		http_tenant.NewHandler,
@@ -145,7 +145,7 @@ func InitializeEvent() Application {
 		// http_fileinfo.NewHandler,
 		// http_folderinfo.NewHandler,
 		http_program.NewHandler,
-		// http_exec.NewHandler,
+		http_exec.NewHandler,
 
 		// INPUT PORT SECTION
 		http_middleware.NewMiddleware,

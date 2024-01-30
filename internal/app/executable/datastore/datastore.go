@@ -36,7 +36,7 @@ type Executable struct {
 }
 
 type ExecutableListResult struct {
-	Results     []*Executable `json:"results"`
+	Results     []*Executable      `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
@@ -70,7 +70,7 @@ type ExecutableStorerImpl struct {
 
 func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) ExecutableStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("executable_categories")
+	uc := client.Database(appCfg.DB.Name).Collection("executables")
 
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{{Key: "tenant_id", Value: 1}}},
