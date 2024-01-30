@@ -32,7 +32,7 @@ import (
 	// ds_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
 	// ds_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
-	// ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
+	ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	ds_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
 	ds_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/datastore"
 	ds_user "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
@@ -49,7 +49,7 @@ import (
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	uc_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
 
-	// uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
+	uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
 	uc_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/controller"
 	uc_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/controller"
 	uc_user "github.com/bartmika/databoutique-backend/internal/app/user/controller"
@@ -66,7 +66,7 @@ import (
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	http_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 
-	// http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
+	http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	http_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	http_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	http_user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
@@ -112,7 +112,7 @@ func InitializeEvent() Application {
 		ds_programcategory.NewDatastore,
 		// ds_fileinfo.NewDatastore,
 		// ds_folderinfo.NewDatastore,
-		// ds_program.NewDatastore,
+		ds_program.NewDatastore,
 		// ds_exec.NewDatastore,
 
 		// USECASE
@@ -128,7 +128,7 @@ func InitializeEvent() Application {
 		uc_programcategory.NewController,
 		// uc_fileinfo.NewController,
 		// uc_folderinfo.NewController,
-		// uc_program.NewController,
+		uc_program.NewController,
 		// uc_exec.NewController,
 
 		// HTTP TRANSPORT SECTION
@@ -144,7 +144,7 @@ func InitializeEvent() Application {
 		http_programcategory.NewHandler,
 		// http_fileinfo.NewHandler,
 		// http_folderinfo.NewHandler,
-		// http_program.NewHandler,
+		http_program.NewHandler,
 		// http_exec.NewHandler,
 
 		// INPUT PORT SECTION

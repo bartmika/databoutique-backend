@@ -19,11 +19,20 @@ const (
 )
 
 type Program struct {
+	// The name of the assistant to be available to administators in-app and on OpenAI dashboard.
+	Name string `bson:"name" json:"name"`
+	// Description to include for this assistant, used only by app
+	Description string `bson:"description" json:"description"`
+	// The OpenAI prompt to utilize for this assistant.
+	Instructions string `bson:"instructions" json:"instructions"`
+	// Model holds the OpenAI completion model to utilize, to see list then visit: https://github.com/sashabaranov/go-openai/blob/eff8dc1118ea82a1b50ee316608e24d83df74d6b/completion.go
+	Model string `bson:"model" json:"model"`
+	// Variable controls how this assistant is running in-app.
+	Status int8 `bson:"status" json:"status"`
+	// The unique identifier used in-app powered by MongoDB.
+	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
 	ID                    primitive.ObjectID `bson:"_id" json:"id"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	Text                  string             `bson:"text" json:"text"`
-	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
-	Status                int8               `bson:"status" json:"status"`
 	PublicID              uint64             `bson:"public_id" json:"public_id"`
 	CreatedAt             time.Time          `bson:"created_at" json:"created_at"`
 	CreatedByUserID       primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id,omitempty"`
@@ -36,7 +45,7 @@ type Program struct {
 }
 
 type ProgramListResult struct {
-	Results     []*Program `json:"results"`
+	Results     []*Program         `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
@@ -70,14 +79,16 @@ type ProgramStorerImpl struct {
 
 func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) ProgramStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("program_categories")
+	uc := client.Database(appCfg.DB.Name).Collection("programs")
 
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{{Key: "tenant_id", Value: 1}}},
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},
 		{Keys: bson.D{{Key: "status", Value: 1}}},
 		{Keys: bson.D{
-			{"text", "text"},
+			{"name", "text"},
+			{"description", "text"},
+			{"instructions", "text"},
 		}},
 	})
 	if err != nil {

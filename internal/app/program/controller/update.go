@@ -16,19 +16,30 @@ import (
 )
 
 type ProgramUpdateRequestIDO struct {
-	ID         primitive.ObjectID `bson:"id" json:"id"`
-	Text       string             `bson:"text" json:"text"`
-	SortNumber int8               `bson:"sort_number" json:"sort_number"`
+	ID           primitive.ObjectID `bson:"id" json:"id"`
+	Name         string             `bson:"name" json:"name"`
+	Instructions string             `bson:"instructions" json:"instructions"`
+	Model        string             `bson:"model" json:"model"`
+	Description  string             `bson:"description" json:"description"`
 }
 
 func (impl *ProgramControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *ProgramUpdateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
+	if dirtyData.ID.IsZero() {
+		e["id"] = "missing value"
 	}
-	if dirtyData.SortNumber == 0 {
-		e["sort_number"] = "missing value"
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
+	}
+	if dirtyData.Description == "" {
+		e["description"] = "missing value"
+	}
+	if dirtyData.Instructions == "" {
+		e["instructions"] = "missing value"
+	}
+	if dirtyData.Model == "" {
+		e["model"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -84,12 +95,12 @@ func (impl *ProgramControllerImpl) UpdateByID(ctx context.Context, requestData *
 		////
 
 		// Lookup the program in our database, else return a `400 Bad Request` error.
-		hh, err := impl.ProgramStorer.GetByID(sessCtx, requestData.ID)
+		prog, err := impl.ProgramStorer.GetByID(sessCtx, requestData.ID)
 		if err != nil {
 			impl.Logger.Error("database error", slog.Any("err", err))
 			return nil, err
 		}
-		if hh == nil {
+		if prog == nil {
 			impl.Logger.Warn("program does not exist validation error")
 			return nil, httperror.NewForBadRequestWithSingleField("id", "does not exist")
 		}
@@ -99,17 +110,19 @@ func (impl *ProgramControllerImpl) UpdateByID(ctx context.Context, requestData *
 		////
 
 		// Base
-		hh.TenantID = tid
-		hh.ModifiedAt = time.Now()
-		hh.ModifiedByUserID = userID
-		hh.ModifiedByUserName = userName
-		hh.ModifiedFromIPAddress = ipAddress
+		prog.TenantID = tid
+		prog.ModifiedAt = time.Now()
+		prog.ModifiedByUserID = userID
+		prog.ModifiedByUserName = userName
+		prog.ModifiedFromIPAddress = ipAddress
 
 		// Content
-		hh.Text = requestData.Text
-		hh.SortNumber = requestData.SortNumber
+		prog.Name = requestData.Name
+		prog.Description = requestData.Description
+		prog.Instructions = requestData.Instructions
+		prog.Model = requestData.Model
 
-		if err := impl.ProgramStorer.UpdateByID(sessCtx, hh); err != nil {
+		if err := impl.ProgramStorer.UpdateByID(sessCtx, prog); err != nil {
 			impl.Logger.Error("program update by id error", slog.Any("error", err))
 			return nil, err
 		}
@@ -124,7 +137,7 @@ func (impl *ProgramControllerImpl) UpdateByID(ctx context.Context, requestData *
 		//// Exit our transaction successfully.
 		////
 
-		return hh, nil
+		return prog, nil
 	}
 
 	// Start a transaction

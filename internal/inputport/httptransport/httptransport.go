@@ -18,8 +18,7 @@ import (
 	// folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
-
-	// program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
+	program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
@@ -49,7 +48,7 @@ type httpTransportInputPort struct {
 	ProgramCategory  *programcategory.Handler
 	// FileInfo         *fileinfo.Handler
 	// FolderInfo       *folderinfo.Handler
-	// Program          *program.Handler
+	Program *program.Handler
 	// Executable       *executable.Handler
 }
 
@@ -69,7 +68,7 @@ func NewInputPort(
 	pc *programcategory.Handler,
 	// fi *fileinfo.Handler,
 	// fo *folderinfo.Handler,
-	// prog *program.Handler,
+	prog *program.Handler,
 	// exec *executable.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
@@ -104,7 +103,7 @@ func NewInputPort(
 		ProgramCategory:  pc,
 		// FileInfo:         fi,
 		// FolderInfo:       fo,
-		// Program:          prog,
+		Program: prog,
 		// Executable:       exec,
 		Server: srv,
 	}
@@ -237,20 +236,20 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	// case n == 4 && p[1] == "v1" && p[2] == "folders" && p[3] == "select-options" && r.Method == http.MethodGet:
 	// 	port.FolderInfo.ListAsSelectOptionByFilter(w, r)
 	//
-	// // --- PROGRAM --- //
-	// case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
-	// 	port.Program.List(w, r)
-	// case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodPost:
-	// 	port.Program.Create(w, r)
-	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodGet:
-	// 	port.Program.GetByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodPut:
-	// 	port.Program.UpdateByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodDelete:
-	// 	port.Program.DeleteByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "programs" && p[3] == "select-options" && r.Method == http.MethodGet:
-	// 	port.Program.ListAsSelectOptionByFilter(w, r)
-	//
+	// --- PROGRAM --- //
+	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
+		port.Program.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodPost:
+		port.Program.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodGet:
+		port.Program.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodPut:
+		port.Program.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodDelete:
+		port.Program.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "programs" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.Program.ListAsSelectOptionByFilter(w, r)
+
 	// // --- EXECUTABLE --- //
 	// case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodGet:
 	// 	port.Executable.List(w, r)

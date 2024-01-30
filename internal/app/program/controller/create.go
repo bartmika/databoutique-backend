@@ -15,21 +15,26 @@ import (
 )
 
 type ProgramCreateRequestIDO struct {
-	Text           string `bson:"text" json:"text"`
-	SortNumber     int8   `bson:"sort_number" json:"sort_number"`
-	IsForAssociate bool   `bson:"is_for_associate" json:"is_for_associate"`
-	IsForCustomer  bool   `bson:"is_for_customer" json:"is_for_customer"`
-	IsForStaff     bool   `bson:"is_for_staff" json:"is_for_staff"`
+	Name         string `bson:"name" json:"name"`
+	Description  string `bson:"description" json:"description"`
+	Instructions string `bson:"instructions" json:"instructions"`
+	Model        string `bson:"model" json:"model"`
 }
 
 func (impl *ProgramControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ProgramCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
 	}
-	if dirtyData.SortNumber == 0 {
-		e["sort_number"] = "missing value"
+	if dirtyData.Description == "" {
+		e["description"] = "missing value"
+	}
+	if dirtyData.Instructions == "" {
+		e["instructions"] = "missing value"
+	}
+	if dirtyData.Model == "" {
+		e["model"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -93,27 +98,28 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		hh := &program_s.Program{}
+		prog := &program_s.Program{
+			Name:         requestData.Name,
+			Description:  requestData.Description,
+			Instructions: requestData.Instructions,
+			Model:        requestData.Model,
+			Status:       program_s.ProgramStatusActive,
+		}
 
 		// Add defaults.
-		hh.TenantID = tid
-		hh.ID = primitive.NewObjectID()
-		hh.CreatedAt = time.Now()
-		hh.CreatedByUserID = userID
-		hh.CreatedByUserName = userName
-		hh.CreatedFromIPAddress = ipAddress
-		hh.ModifiedAt = time.Now()
-		hh.ModifiedByUserID = userID
-		hh.ModifiedByUserName = userName
-		hh.ModifiedFromIPAddress = ipAddress
-
-		// Add base.
-		hh.Text = requestData.Text
-		hh.SortNumber = requestData.SortNumber
-		hh.Status = program_s.ProgramStatusActive
+		prog.TenantID = tid
+		prog.ID = primitive.NewObjectID()
+		prog.CreatedAt = time.Now()
+		prog.CreatedByUserID = userID
+		prog.CreatedByUserName = userName
+		prog.CreatedFromIPAddress = ipAddress
+		prog.ModifiedAt = time.Now()
+		prog.ModifiedByUserID = userID
+		prog.ModifiedByUserName = userName
+		prog.ModifiedFromIPAddress = ipAddress
 
 		// Save to our database.
-		if err := impl.ProgramStorer.Create(sessCtx, hh); err != nil {
+		if err := impl.ProgramStorer.Create(sessCtx, prog); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
@@ -122,7 +128,7 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 		//// Exit our transaction successfully.
 		////
 
-		return hh, nil
+		return prog, nil
 	}
 
 	// Start a transaction
