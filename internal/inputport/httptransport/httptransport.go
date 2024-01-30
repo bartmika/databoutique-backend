@@ -14,6 +14,7 @@ import (
 	attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
+	programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/config"
@@ -39,6 +40,7 @@ type httpTransportInputPort struct {
 	Assistant        *assistant.Handler
 	AssistantThread  *assistantthread.Handler
 	AssistantMessage *assistantmessage.Handler
+	ProgramCategory  *programcategory.Handler
 }
 
 func NewInputPort(
@@ -54,6 +56,7 @@ func NewInputPort(
 	assistant *assistant.Handler,
 	at *assistantthread.Handler,
 	am *assistantmessage.Handler,
+	pc *programcategory.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -84,6 +87,7 @@ func NewInputPort(
 		Assistant:        assistant,
 		AssistantThread:  at,
 		AssistantMessage: am,
+		ProgramCategory:  pc,
 		Server:           srv,
 	}
 
@@ -172,6 +176,20 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 		port.Tenant.OperationCreateComment(w, r)
 	case n == 4 && p[1] == "v1" && p[2] == "tenants" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.Tenant.ListAsSelectOptionByFilter(w, r)
+
+	// --- PROGRAM CATEGORY --- //
+	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodGet:
+		port.ProgramCategory.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodPost:
+		port.ProgramCategory.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodGet:
+		port.ProgramCategory.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodPut:
+		port.ProgramCategory.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodDelete:
+		port.ProgramCategory.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-categorys" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.ProgramCategory.ListAsSelectOptionByFilter(w, r)
 
 	// --- ASSISTANT FILE --- //
 	case n == 3 && p[1] == "v1" && p[2] == "assistant-files" && r.Method == http.MethodGet:
