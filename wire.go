@@ -27,6 +27,7 @@ import (
 	ds_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/datastore"
 	ds_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/datastore"
 	ds_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
+	ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
 	ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	ds_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
@@ -38,6 +39,7 @@ import (
 	uc_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/controller"
 	uc_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/controller"
 	uc_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
+	uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	uc_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
 	uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
@@ -50,6 +52,7 @@ import (
 	http_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/httptransport"
 	http_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	http_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
+	http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	http_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 	http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
@@ -97,6 +100,7 @@ func InitializeEvent() Application {
 		ds_assistantmessage.NewDatastore,
 		ds_programcategory.NewDatastore,
 		ds_program.NewDatastore,
+		ds_exec.NewDatastore,
 
 		// USECASE
 		uc_tenant.NewController,
@@ -110,6 +114,7 @@ func InitializeEvent() Application {
 		uc_assistantmessage.NewController,
 		uc_programcategory.NewController,
 		uc_program.NewController,
+		uc_exec.NewController,
 
 		// HTTP TRANSPORT SECTION
 		http_tenant.NewHandler,
@@ -123,6 +128,7 @@ func InitializeEvent() Application {
 		http_assistantmessage.NewHandler,
 		http_programcategory.NewHandler,
 		http_program.NewHandler,
+		http_exec.NewHandler,
 
 		// INPUT PORT SECTION
 		http_middleware.NewMiddleware,

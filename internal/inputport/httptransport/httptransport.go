@@ -12,6 +12,7 @@ import (
 	assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/httptransport"
 	assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
+	executable "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 	program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
@@ -43,6 +44,7 @@ type httpTransportInputPort struct {
 	AssistantMessage *assistantmessage.Handler
 	ProgramCategory  *programcategory.Handler
 	Program          *program.Handler
+	Executable       *executable.Handler
 }
 
 func NewInputPort(
@@ -60,6 +62,7 @@ func NewInputPort(
 	am *assistantmessage.Handler,
 	pc *programcategory.Handler,
 	prog *program.Handler,
+	exec *executable.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -92,6 +95,7 @@ func NewInputPort(
 		AssistantMessage: am,
 		ProgramCategory:  pc,
 		Program:          prog,
+		Executable:       exec,
 		Server:           srv,
 	}
 
@@ -208,6 +212,20 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 		port.Program.DeleteByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "programs" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.Program.ListAsSelectOptionByFilter(w, r)
+
+	// --- EXECUTABLE --- //
+	case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodGet:
+		port.Executable.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodPost:
+		port.Executable.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodGet:
+		port.Executable.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodPut:
+		port.Executable.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodDelete:
+		port.Executable.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "executables" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.Executable.ListAsSelectOptionByFilter(w, r)
 
 	// --- ASSISTANT FILE --- //
 	case n == 3 && p[1] == "v1" && p[2] == "assistant-files" && r.Method == http.MethodGet:
