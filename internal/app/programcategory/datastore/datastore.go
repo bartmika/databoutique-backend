@@ -21,7 +21,8 @@ const (
 type ProgramCategory struct {
 	ID                    primitive.ObjectID `bson:"_id" json:"id"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	Text                  string             `bson:"text" json:"text"`
+	Name                  string             `bson:"name" json:"name"`
+	Description           string             `bson:"description" json:"description"`
 	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
 	Status                int8               `bson:"status" json:"status"`
 	PublicID              uint64             `bson:"public_id" json:"public_id"`
@@ -43,7 +44,7 @@ type ProgramCategoryListResult struct {
 
 type ProgramCategoryAsSelectOption struct {
 	Value primitive.ObjectID `bson:"_id" json:"value"` // Extract from the database `_id` field and output through API as `value`.
-	Label string             `bson:"text" json:"label"`
+	Label string             `bson:"name" json:"label"`
 }
 
 // ProgramCategoryStorer Interface for user.
@@ -52,7 +53,7 @@ type ProgramCategoryStorer interface {
 	CreateOrGetByID(ctx context.Context, hh *ProgramCategory) (*ProgramCategory, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*ProgramCategory, error)
 	GetByPublicID(ctx context.Context, oldID uint64) (*ProgramCategory, error)
-	GetByText(ctx context.Context, text string) (*ProgramCategory, error)
+	GetByName(ctx context.Context, name string) (*ProgramCategory, error)
 	GetLatestByTenantID(ctx context.Context, tenantID primitive.ObjectID) (*ProgramCategory, error)
 	CheckIfExistsByEmail(ctx context.Context, email string) (bool, error)
 	UpdateByID(ctx context.Context, m *ProgramCategory) error
@@ -77,7 +78,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Pr
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},
 		{Keys: bson.D{{Key: "status", Value: 1}}},
 		{Keys: bson.D{
-			{"text", "text"},
+			{"name", "text"},
 		}},
 	})
 	if err != nil {

@@ -43,11 +43,11 @@ func (impl ProgramCategoryStorerImpl) ListAsSelectOptionByFilter(ctx context.Con
 		query["status"] = f.Status
 	}
 
-	// Full-text search
-	if f.SearchText != "" {
-		query["$text"] = bson.M{"$search": f.SearchText}
-		options.SetProjection(bson.M{"score": bson.M{"$meta": "textScore"}})
-		options.SetSort(bson.D{{"score", bson.M{"$meta": "textScore"}}})
+	// Full-name search
+	if f.SearchName != "" {
+		query["$name"] = bson.M{"$search": f.SearchName}
+		options.SetProjection(bson.M{"score": bson.M{"$meta": "nameScore"}})
+		options.SetSort(bson.D{{"score", bson.M{"$meta": "nameScore"}}})
 	}
 
 	options.SetSort(bson.D{{f.SortField, 1}}) // Sort in ascending order based on the specified field

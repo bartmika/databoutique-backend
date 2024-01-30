@@ -27,11 +27,12 @@ import (
 	ds_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/datastore"
 	ds_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/datastore"
 	ds_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
-	ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
-	ds_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
-	ds_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+
+	// ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	// ds_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	// ds_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
-	ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
+	// ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	ds_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
 	ds_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/datastore"
 	ds_user "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
@@ -41,12 +42,14 @@ import (
 	uc_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/controller"
 	uc_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/controller"
 	uc_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
-	uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
-	uc_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
-	uc_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
+
+	// uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
+	// uc_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
+	// uc_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	uc_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
-	uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
+
+	// uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
 	uc_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/controller"
 	uc_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/controller"
 	uc_user "github.com/bartmika/databoutique-backend/internal/app/user/controller"
@@ -56,12 +59,14 @@ import (
 	http_assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/httptransport"
 	http_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	http_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
-	http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
-	http_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
-	http_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
+
+	// http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	// http_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
+	// http_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	http_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
-	http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
+
+	// http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	http_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	http_tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	http_user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
@@ -105,10 +110,10 @@ func InitializeEvent() Application {
 		ds_assistantthread.NewDatastore,
 		ds_assistantmessage.NewDatastore,
 		ds_programcategory.NewDatastore,
-		ds_fileinfo.NewDatastore,
-		ds_folderinfo.NewDatastore,
-		ds_program.NewDatastore,
-		ds_exec.NewDatastore,
+		// ds_fileinfo.NewDatastore,
+		// ds_folderinfo.NewDatastore,
+		// ds_program.NewDatastore,
+		// ds_exec.NewDatastore,
 
 		// USECASE
 		uc_tenant.NewController,
@@ -121,10 +126,10 @@ func InitializeEvent() Application {
 		uc_assistantthread.NewController,
 		uc_assistantmessage.NewController,
 		uc_programcategory.NewController,
-		uc_fileinfo.NewController,
-		uc_folderinfo.NewController,
-		uc_program.NewController,
-		uc_exec.NewController,
+		// uc_fileinfo.NewController,
+		// uc_folderinfo.NewController,
+		// uc_program.NewController,
+		// uc_exec.NewController,
 
 		// HTTP TRANSPORT SECTION
 		http_tenant.NewHandler,
@@ -137,10 +142,10 @@ func InitializeEvent() Application {
 		http_assistantthread.NewHandler,
 		http_assistantmessage.NewHandler,
 		http_programcategory.NewHandler,
-		http_fileinfo.NewHandler,
-		http_folderinfo.NewHandler,
-		http_program.NewHandler,
-		http_exec.NewHandler,
+		// http_fileinfo.NewHandler,
+		// http_folderinfo.NewHandler,
+		// http_program.NewHandler,
+		// http_exec.NewHandler,
 
 		// INPUT PORT SECTION
 		http_middleware.NewMiddleware,

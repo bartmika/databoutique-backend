@@ -12,12 +12,14 @@ import (
 	assistantmessage "github.com/bartmika/databoutique-backend/internal/app/assistantmessage/httptransport"
 	assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
-	executable "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
-	fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
-	folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
+
+	// executable "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	// fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
+	// folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
-	program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
+
+	// program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
@@ -45,10 +47,10 @@ type httpTransportInputPort struct {
 	AssistantThread  *assistantthread.Handler
 	AssistantMessage *assistantmessage.Handler
 	ProgramCategory  *programcategory.Handler
-	FileInfo         *fileinfo.Handler
-	FolderInfo       *folderinfo.Handler
-	Program          *program.Handler
-	Executable       *executable.Handler
+	// FileInfo         *fileinfo.Handler
+	// FolderInfo       *folderinfo.Handler
+	// Program          *program.Handler
+	// Executable       *executable.Handler
 }
 
 func NewInputPort(
@@ -65,10 +67,10 @@ func NewInputPort(
 	at *assistantthread.Handler,
 	am *assistantmessage.Handler,
 	pc *programcategory.Handler,
-	fi *fileinfo.Handler,
-	fo *folderinfo.Handler,
-	prog *program.Handler,
-	exec *executable.Handler,
+	// fi *fileinfo.Handler,
+	// fo *folderinfo.Handler,
+	// prog *program.Handler,
+	// exec *executable.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -100,11 +102,11 @@ func NewInputPort(
 		AssistantThread:  at,
 		AssistantMessage: am,
 		ProgramCategory:  pc,
-		FileInfo:         fi,
-		FolderInfo:       fo,
-		Program:          prog,
-		Executable:       exec,
-		Server:           srv,
+		// FileInfo:         fi,
+		// FolderInfo:       fo,
+		// Program:          prog,
+		// Executable:       exec,
+		Server: srv,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -207,61 +209,61 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	case n == 4 && p[1] == "v1" && p[2] == "program-categories" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.ProgramCategory.ListAsSelectOptionByFilter(w, r)
 
-	// --- FILE INFO --- //
-	case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodGet:
-		port.FileInfo.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodPost:
-		port.FileInfo.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodGet:
-		port.FileInfo.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodPut:
-		port.FileInfo.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodDelete:
-		port.FileInfo.DeleteByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "files" && p[3] == "select-options" && r.Method == http.MethodGet:
-		port.FileInfo.ListAsSelectOptionByFilter(w, r)
-
-	// --- FOLDER INFO --- //
-	case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodGet:
-		port.FolderInfo.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodPost:
-		port.FolderInfo.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodGet:
-		port.FolderInfo.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodPut:
-		port.FolderInfo.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodDelete:
-		port.FolderInfo.DeleteByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "folders" && p[3] == "select-options" && r.Method == http.MethodGet:
-		port.FolderInfo.ListAsSelectOptionByFilter(w, r)
-
-	// --- PROGRAM --- //
-	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
-		port.Program.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodPost:
-		port.Program.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodGet:
-		port.Program.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodPut:
-		port.Program.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodDelete:
-		port.Program.DeleteByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "programs" && p[3] == "select-options" && r.Method == http.MethodGet:
-		port.Program.ListAsSelectOptionByFilter(w, r)
-
-	// --- EXECUTABLE --- //
-	case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodGet:
-		port.Executable.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodPost:
-		port.Executable.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodGet:
-		port.Executable.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodPut:
-		port.Executable.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodDelete:
-		port.Executable.DeleteByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "executables" && p[3] == "select-options" && r.Method == http.MethodGet:
-		port.Executable.ListAsSelectOptionByFilter(w, r)
+	// // --- FILE INFO --- //
+	// case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodGet:
+	// 	port.FileInfo.List(w, r)
+	// case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodPost:
+	// 	port.FileInfo.Create(w, r)
+	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodGet:
+	// 	port.FileInfo.GetByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodPut:
+	// 	port.FileInfo.UpdateByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodDelete:
+	// 	port.FileInfo.DeleteByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "files" && p[3] == "select-options" && r.Method == http.MethodGet:
+	// 	port.FileInfo.ListAsSelectOptionByFilter(w, r)
+	//
+	// // --- FOLDER INFO --- //
+	// case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodGet:
+	// 	port.FolderInfo.List(w, r)
+	// case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodPost:
+	// 	port.FolderInfo.Create(w, r)
+	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodGet:
+	// 	port.FolderInfo.GetByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodPut:
+	// 	port.FolderInfo.UpdateByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodDelete:
+	// 	port.FolderInfo.DeleteByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "folders" && p[3] == "select-options" && r.Method == http.MethodGet:
+	// 	port.FolderInfo.ListAsSelectOptionByFilter(w, r)
+	//
+	// // --- PROGRAM --- //
+	// case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
+	// 	port.Program.List(w, r)
+	// case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodPost:
+	// 	port.Program.Create(w, r)
+	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodGet:
+	// 	port.Program.GetByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodPut:
+	// 	port.Program.UpdateByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "program" && r.Method == http.MethodDelete:
+	// 	port.Program.DeleteByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "programs" && p[3] == "select-options" && r.Method == http.MethodGet:
+	// 	port.Program.ListAsSelectOptionByFilter(w, r)
+	//
+	// // --- EXECUTABLE --- //
+	// case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodGet:
+	// 	port.Executable.List(w, r)
+	// case n == 3 && p[1] == "v1" && p[2] == "executables" && r.Method == http.MethodPost:
+	// 	port.Executable.Create(w, r)
+	// case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodGet:
+	// 	port.Executable.GetByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodPut:
+	// 	port.Executable.UpdateByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "executable" && r.Method == http.MethodDelete:
+	// 	port.Executable.DeleteByID(w, r, p[3])
+	// case n == 4 && p[1] == "v1" && p[2] == "executables" && p[3] == "select-options" && r.Method == http.MethodGet:
+	// 	port.Executable.ListAsSelectOptionByFilter(w, r)
 
 	// --- ASSISTANT FILE --- //
 	case n == 3 && p[1] == "v1" && p[2] == "assistant-files" && r.Method == http.MethodGet:

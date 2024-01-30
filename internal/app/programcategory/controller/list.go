@@ -28,7 +28,7 @@ func (c *ProgramCategoryControllerImpl) ListByFilter(ctx context.Context, f *t_s
 		// slog.Any("Type", f.Type),
 		// slog.Any("Status", f.Status),
 		// slog.Bool("ExcludeArchived", f.ExcludeArchived),
-		// slog.String("SearchText", f.SearchText),
+		// slog.String("SearchName", f.SearchName),
 		// slog.Any("FirstName", f.FirstName),
 		// slog.Any("LastName", f.LastName),
 		// slog.Any("Email", f.Email),

@@ -15,7 +15,8 @@ import (
 )
 
 type ProgramCategoryCreateRequestIDO struct {
-	Text           string `bson:"text" json:"text"`
+	Name           string `bson:"name" json:"name"`
+	Description    string `bson:"description" json:"description"`
 	SortNumber     int8   `bson:"sort_number" json:"sort_number"`
 	IsForAssociate bool   `bson:"is_for_associate" json:"is_for_associate"`
 	IsForCustomer  bool   `bson:"is_for_customer" json:"is_for_customer"`
@@ -25,8 +26,8 @@ type ProgramCategoryCreateRequestIDO struct {
 func (impl *ProgramCategoryControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ProgramCategoryCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
 	}
 	if dirtyData.SortNumber == 0 {
 		e["sort_number"] = "missing value"
@@ -108,7 +109,8 @@ func (impl *ProgramCategoryControllerImpl) Create(ctx context.Context, requestDa
 		hh.ModifiedFromIPAddress = ipAddress
 
 		// Add base.
-		hh.Text = requestData.Text
+		hh.Name = requestData.Name
+		hh.Description = requestData.Description
 		hh.SortNumber = requestData.SortNumber
 		hh.Status = programcategory_s.ProgramCategoryStatusActive
 

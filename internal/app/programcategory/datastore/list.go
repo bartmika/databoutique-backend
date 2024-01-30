@@ -39,11 +39,11 @@ func (impl ProgramCategoryStorerImpl) ListByFilter(ctx context.Context, f *Progr
 		return nil, err
 	}
 
-	// Include Full-text search
-	if f.SearchText != "" {
-		filter["$text"] = bson.M{"$search": f.SearchText}
-		options.SetProjection(bson.M{"score": bson.M{"$meta": "textScore"}})
-		options.SetSort(bson.D{{"score", bson.M{"$meta": "textScore"}}})
+	// Include Full-name search
+	if f.SearchName != "" {
+		filter["$name"] = bson.M{"$search": f.SearchName}
+		options.SetProjection(bson.M{"score": bson.M{"$meta": "nameScore"}})
+		options.SetSort(bson.D{{"score", bson.M{"$meta": "nameScore"}}})
 	}
 
 	// Execute the query

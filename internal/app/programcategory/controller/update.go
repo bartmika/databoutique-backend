@@ -16,16 +16,17 @@ import (
 )
 
 type ProgramCategoryUpdateRequestIDO struct {
-	ID         primitive.ObjectID `bson:"id" json:"id"`
-	Text       string             `bson:"text" json:"text"`
-	SortNumber int8               `bson:"sort_number" json:"sort_number"`
+	ID          primitive.ObjectID `bson:"id" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	Description string             `bson:"description" json:"description"`
+	SortNumber  int8               `bson:"sort_number" json:"sort_number"`
 }
 
 func (impl *ProgramCategoryControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *ProgramCategoryUpdateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
 	}
 	if dirtyData.SortNumber == 0 {
 		e["sort_number"] = "missing value"
@@ -106,7 +107,8 @@ func (impl *ProgramCategoryControllerImpl) UpdateByID(ctx context.Context, reque
 		hh.ModifiedFromIPAddress = ipAddress
 
 		// Content
-		hh.Text = requestData.Text
+		hh.Name = requestData.Name
+		hh.Description = requestData.Description
 		hh.SortNumber = requestData.SortNumber
 
 		if err := impl.ProgramCategoryStorer.UpdateByID(sessCtx, hh); err != nil {

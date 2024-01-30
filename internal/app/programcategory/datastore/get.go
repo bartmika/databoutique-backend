@@ -42,8 +42,8 @@ func (impl ProgramCategoryStorerImpl) GetByPublicID(ctx context.Context, oldID u
 	return &result, nil
 }
 
-func (impl ProgramCategoryStorerImpl) GetByText(ctx context.Context, text string) (*ProgramCategory, error) {
-	filter := bson.D{{"text", text}}
+func (impl ProgramCategoryStorerImpl) GetByName(ctx context.Context, name string) (*ProgramCategory, error) {
+	filter := bson.D{{"name", name}}
 
 	var result ProgramCategory
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)

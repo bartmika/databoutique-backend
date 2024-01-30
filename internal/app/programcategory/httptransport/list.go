@@ -52,7 +52,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 
 	searchKeyword := query.Get("search")
 	if searchKeyword != "" {
-		f.SearchText = searchKeyword
+		f.SearchName = searchKeyword
 	}
 
 	m, err := h.Controller.ListByFilter(ctx, f)

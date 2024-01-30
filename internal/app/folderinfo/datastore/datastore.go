@@ -36,7 +36,7 @@ type FolderInfo struct {
 }
 
 type FolderInfoListResult struct {
-	Results     []*FolderInfo `json:"results"`
+	Results     []*FolderInfo      `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
@@ -70,8 +70,7 @@ type FolderInfoStorerImpl struct {
 
 func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) FolderInfoStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("program_categories")
-
+	uc := client.Database(appCfg.DB.Name).Collection("folder_infos")
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{{Key: "tenant_id", Value: 1}}},
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},

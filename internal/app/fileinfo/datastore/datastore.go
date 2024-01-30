@@ -69,7 +69,7 @@ type FileInfoStorerImpl struct {
 
 func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) FileInfoStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("assistant_files")
+	uc := client.Database(appCfg.DB.Name).Collection("file_infos")
 
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
