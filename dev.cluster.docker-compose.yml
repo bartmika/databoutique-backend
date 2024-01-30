@@ -1,0 +1,129 @@
+# HOW TO USE:
+# The purpose of this docker-compose is to setup our application which is
+# dependent on the `MongoDB` database running concurrently with this
+# server for developer purposes. This configuration has hot-reloading activated.
+#
+# $ docker-compose -p databoutique -f dev.docker-compose.yml up   #
+#
+
+version: '3.8'
+services:
+  db1:
+    container_name: databoutique_db1
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--quiet", "--logpath", "/dev/null"]
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017',priority:1},{_id:1,host:'host.docker.internal:27018',priority:0.5},{_id:2,host:'host.docker.internal:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    volumes:
+      - "db1_data:/data/db"
+      - "db1_config:/data/configdb"
+
+  db2:
+    container_name: databoutique_db2
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27018", "--quiet", "--logpath", "/dev/null"]
+    ports:
+      - 27018:27018
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "db2_data:/data/db"
+      - "db2_config:/data/configdb"
+
+  db3:
+    container_name: databoutique_db3
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27019", "--quiet", "--logpath", "/dev/null"]
+    ports:
+      - 27019:27019
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "db3_data:/data/db"
+      - "db3_config:/data/configdb"
+
+  mongo-express:
+    container_name: databoutique_mongodb_admin
+    image: mongo-express
+    environment:
+        - ME_CONFIG_MONGODB_SERVER=db1
+        - ME_CONFIG_MONGODB_PORT=27017
+        - ME_CONFIG_MONGODB_URI=mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0
+    ports:
+        - '8081:8081'
+    depends_on:
+      - db1
+      - db2
+      - db3
+    links:
+      - db1
+      - db2
+      - db3
+    restart: unless-stopped
+
+  # The main application.
+  app:
+    container_name: databoutique_app
+    stdin_open: true
+    environment:
+        DATABOUTIQUE_BACKEND_IP: 0.0.0.0
+        DATABOUTIQUE_BACKEND_PORT: 8000
+        DATABOUTIQUE_BACKEND_HMAC_SECRET: ${DATABOUTIQUE_BACKEND_HMAC_SECRET}
+        DATABOUTIQUE_BACKEND_HAS_DEBUGGING: ${DATABOUTIQUE_BACKEND_HAS_DEBUGGING}
+        DATABOUTIQUE_BACKEND_CACHE_URI: ${DATABOUTIQUE_BACKEND_CACHE_URI}
+        DATABOUTIQUE_BACKEND_DB_URI: mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0 # This is dependent on the configuration in our docker-compose file (see above).
+        DATABOUTIQUE_BACKEND_DB_NAME: ${DATABOUTIQUE_BACKEND_DB_NAME}
+        DATABOUTIQUE_BACKEND_AWS_ACCESS_KEY: ${DATABOUTIQUE_BACKEND_AWS_ACCESS_KEY}
+        DATABOUTIQUE_BACKEND_AWS_SECRET_KEY: ${DATABOUTIQUE_BACKEND_AWS_SECRET_KEY}
+        DATABOUTIQUE_BACKEND_AWS_ENDPOINT: ${DATABOUTIQUE_BACKEND_AWS_ENDPOINT}
+        DATABOUTIQUE_BACKEND_AWS_REGION: ${DATABOUTIQUE_BACKEND_AWS_REGION}
+        DATABOUTIQUE_BACKEND_AWS_BUCKET_NAME: ${DATABOUTIQUE_BACKEND_AWS_BUCKET_NAME}
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_EMAIL: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_EMAIL} # Required email for root admin when project starts up
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_PASSWORD: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_PASSWORD} # Required password for root admin when project starts up
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_ID: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_ID}
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_NAME: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_NAME}
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_OPENAI_KEY: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_OPENAI_KEY}
+        DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_OPENAI_ORGANIZATION_KEY: ${DATABOUTIQUE_BACKEND_INITIAL_ADMIN_STORE_OPENAI_ORGANIZATION_KEY}
+        DATABOUTIQUE_BACKEND_DOMAIN_NAME: ${DATABOUTIQUE_BACKEND_DOMAIN_NAME}
+        AWS_ACCESS_KEY: ${DATABOUTIQUE_BACKEND_AWS_ACCESS_KEY} # AWS SDK requires this exact name.
+        AWS_SECRET_KEY: ${DATABOUTIQUE_BACKEND_AWS_SECRET_KEY} # AWS SDK requires this exact name.
+        AWS_REGION: ${DATABOUTIQUE_BACKEND_AWS_REGION}         # AWS SDK requires this exact name.
+        DATABOUTIQUE_BACKEND_MAILGUN_API_KEY: ${DATABOUTIQUE_BACKEND_MAILGUN_API_KEY}
+        DATABOUTIQUE_BACKEND_MAILGUN_DOMAIN: ${DATABOUTIQUE_BACKEND_MAILGUN_DOMAIN}
+        DATABOUTIQUE_BACKEND_MAILGUN_API_BASE: ${DATABOUTIQUE_BACKEND_MAILGUN_API_BASE}
+        DATABOUTIQUE_BACKEND_MAILGUN_SENDER_EMAIL: ${DATABOUTIQUE_BACKEND_MAILGUN_SENDER_EMAIL}
+        DATABOUTIQUE_BACKEND_PDF_BUILDER_DATA_DIRECTORY_PATH: ${DATABOUTIQUE_BACKEND_PDF_BUILDER_DATA_DIRECTORY_PATH}
+        DATABOUTIQUE_BACKEND_PDF_BUILDER_ASSOCIATE_INVOICE_PATH: ${DATABOUTIQUE_BACKEND_PDF_BUILDER_ASSOCIATE_INVOICE_PATH}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db1
+      - db2
+      - db3
+    links:
+      - db1
+      - db2
+      - db3
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/bartmika/databoutique-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
+
+volumes:
+    db1_data:
+    db2_data:
+    db3_data:
+    db1_config:
+    db2_config:
+    db3_config:
