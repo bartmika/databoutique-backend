@@ -7,12 +7,12 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
-	t_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
+	t_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 )
 
-func (c *FolderInfoControllerImpl) ListByFilter(ctx context.Context, f *t_s.FolderInfoPaginationListFilter) (*t_s.FolderInfoPaginationListResult, error) {
+func (c *UploadDirectoryControllerImpl) ListByFilter(ctx context.Context, f *t_s.UploadDirectoryPaginationListFilter) (*t_s.UploadDirectoryPaginationListResult, error) {
 	// // Extract from our session the following data.
 	tenantID := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 
@@ -36,7 +36,7 @@ func (c *FolderInfoControllerImpl) ListByFilter(ctx context.Context, f *t_s.Fold
 		// slog.Time("CreatedAtGTE", f.CreatedAtGTE)
 	)
 
-	m, err := c.FolderInfoStorer.ListByFilter(ctx, f)
+	m, err := c.UploadDirectoryStorer.ListByFilter(ctx, f)
 	if err != nil {
 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 		return nil, err
@@ -44,7 +44,7 @@ func (c *FolderInfoControllerImpl) ListByFilter(ctx context.Context, f *t_s.Fold
 	return m, err
 }
 
-// func (c *FolderInfoControllerImpl) LiteListByFilter(ctx context.Context, f *t_s.FolderInfoPaginationListFilter) (*t_s.FolderInfoLiteListResult, error) {
+// func (c *UploadDirectoryControllerImpl) LiteListByFilter(ctx context.Context, f *t_s.UploadDirectoryPaginationListFilter) (*t_s.UploadDirectoryLiteListResult, error) {
 // 	// // Extract from our session the following data.
 // 	tenantID := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 //
@@ -59,7 +59,7 @@ func (c *FolderInfoControllerImpl) ListByFilter(ctx context.Context, f *t_s.Fold
 // 		slog.Any("TenantID", f.TenantID),
 // 	)
 //
-// 	m, err := c.FolderInfoStorer.LiteListByFilter(ctx, f)
+// 	m, err := c.UploadDirectoryStorer.LiteListByFilter(ctx, f)
 // 	if err != nil {
 // 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 // 		return nil, err
@@ -67,7 +67,7 @@ func (c *FolderInfoControllerImpl) ListByFilter(ctx context.Context, f *t_s.Fold
 // 	return m, err
 // }
 
-func (c *FolderInfoControllerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *folderinfo_s.FolderInfoPaginationListFilter) ([]*folderinfo_s.FolderInfoAsSelectOption, error) {
+func (c *UploadDirectoryControllerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *uploaddirectory_s.UploadDirectoryPaginationListFilter) ([]*uploaddirectory_s.UploadDirectoryAsSelectOption, error) {
 	// // Extract from our session the following data.
 	tenantID := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 
@@ -83,7 +83,7 @@ func (c *FolderInfoControllerImpl) ListAsSelectOptionByFilter(ctx context.Contex
 	)
 
 	// Filtering the database.
-	m, err := c.FolderInfoStorer.ListAsSelectOptionByFilter(ctx, f)
+	m, err := c.UploadDirectoryStorer.ListAsSelectOptionByFilter(ctx, f)
 	if err != nil {
 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 		return nil, err
@@ -91,7 +91,7 @@ func (c *FolderInfoControllerImpl) ListAsSelectOptionByFilter(ctx context.Contex
 	return m, err
 }
 
-func (c *FolderInfoControllerImpl) PublicListAsSelectOptionByFilter(ctx context.Context, f *folderinfo_s.FolderInfoPaginationListFilter) ([]*folderinfo_s.FolderInfoAsSelectOption, error) {
+func (c *UploadDirectoryControllerImpl) PublicListAsSelectOptionByFilter(ctx context.Context, f *uploaddirectory_s.UploadDirectoryPaginationListFilter) ([]*uploaddirectory_s.UploadDirectoryAsSelectOption, error) {
 
 	// // If unspecified the tenant then auto-assign the default tenant in our app.
 	// if tenant == nil {
@@ -110,7 +110,7 @@ func (c *FolderInfoControllerImpl) PublicListAsSelectOptionByFilter(ctx context.
 	)
 
 	// Filtering the database.
-	m, err := c.FolderInfoStorer.ListAsSelectOptionByFilter(ctx, f)
+	m, err := c.UploadDirectoryStorer.ListAsSelectOptionByFilter(ctx, f)
 	if err != nil {
 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 		return nil, err

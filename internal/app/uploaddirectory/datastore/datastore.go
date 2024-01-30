@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	FolderInfoStatusActive   = 1
-	FolderInfoStatusArchived = 2
+	UploadDirectoryStatusActive   = 1
+	UploadDirectoryStatusArchived = 2
 )
 
-type FolderInfo struct {
+type UploadDirectory struct {
 	ID                    primitive.ObjectID `bson:"_id" json:"id"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 	Text                  string             `bson:"text" json:"text"`
@@ -35,42 +35,42 @@ type FolderInfo struct {
 	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
 }
 
-type FolderInfoListResult struct {
-	Results     []*FolderInfo      `json:"results"`
+type UploadDirectoryListResult struct {
+	Results     []*UploadDirectory `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
 
-type FolderInfoAsSelectOption struct {
+type UploadDirectoryAsSelectOption struct {
 	Value primitive.ObjectID `bson:"_id" json:"value"` // Extract from the database `_id` field and output through API as `value`.
 	Label string             `bson:"text" json:"label"`
 }
 
-// FolderInfoStorer Interface for user.
-type FolderInfoStorer interface {
-	Create(ctx context.Context, m *FolderInfo) error
-	CreateOrGetByID(ctx context.Context, hh *FolderInfo) (*FolderInfo, error)
-	GetByID(ctx context.Context, id primitive.ObjectID) (*FolderInfo, error)
-	GetByPublicID(ctx context.Context, oldID uint64) (*FolderInfo, error)
-	GetByText(ctx context.Context, text string) (*FolderInfo, error)
-	GetLatestByTenantID(ctx context.Context, tenantID primitive.ObjectID) (*FolderInfo, error)
+// UploadDirectoryStorer Interface for user.
+type UploadDirectoryStorer interface {
+	Create(ctx context.Context, m *UploadDirectory) error
+	CreateOrGetByID(ctx context.Context, hh *UploadDirectory) (*UploadDirectory, error)
+	GetByID(ctx context.Context, id primitive.ObjectID) (*UploadDirectory, error)
+	GetByPublicID(ctx context.Context, oldID uint64) (*UploadDirectory, error)
+	GetByText(ctx context.Context, text string) (*UploadDirectory, error)
+	GetLatestByTenantID(ctx context.Context, tenantID primitive.ObjectID) (*UploadDirectory, error)
 	CheckIfExistsByEmail(ctx context.Context, email string) (bool, error)
-	UpdateByID(ctx context.Context, m *FolderInfo) error
-	ListByFilter(ctx context.Context, f *FolderInfoPaginationListFilter) (*FolderInfoPaginationListResult, error)
-	ListAsSelectOptionByFilter(ctx context.Context, f *FolderInfoPaginationListFilter) ([]*FolderInfoAsSelectOption, error)
-	ListByTenantID(ctx context.Context, tid primitive.ObjectID) (*FolderInfoPaginationListResult, error)
+	UpdateByID(ctx context.Context, m *UploadDirectory) error
+	ListByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) (*UploadDirectoryPaginationListResult, error)
+	ListAsSelectOptionByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) ([]*UploadDirectoryAsSelectOption, error)
+	ListByTenantID(ctx context.Context, tid primitive.ObjectID) (*UploadDirectoryPaginationListResult, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 }
 
-type FolderInfoStorerImpl struct {
+type UploadDirectoryStorerImpl struct {
 	Logger     *slog.Logger
 	DbClient   *mongo.Client
 	Collection *mongo.Collection
 }
 
-func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) FolderInfoStorer {
+func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) UploadDirectoryStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("folder_infos")
+	uc := client.Database(appCfg.DB.Name).Collection("upload_directories")
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{{Key: "tenant_id", Value: 1}}},
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},
@@ -85,7 +85,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Fo
 		log.Fatal(err)
 	}
 
-	s := &FolderInfoStorerImpl{
+	s := &UploadDirectoryStorerImpl{
 		Logger:     loggerp,
 		DbClient:   client,
 		Collection: uc,

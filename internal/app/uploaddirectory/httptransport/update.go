@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	folderinfo_c "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_c "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/controller"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
-func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*folderinfo_c.FolderInfoUpdateRequestIDO, error) {
+func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*uploaddirectory_c.UploadDirectoryUpdateRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData folderinfo_c.FolderInfoUpdateRequestIDO
+	var requestData uploaddirectory_c.UploadDirectoryUpdateRequestIDO
 
 	defer r.Body.Close()
 
@@ -44,7 +44,7 @@ func (h *Handler) UpdateByID(w http.ResponseWriter, r *http.Request, id string) 
 	MarshalUpdateResponse(res, w)
 }
 
-func MarshalUpdateResponse(res *folderinfo_s.FolderInfo, w http.ResponseWriter) {
+func MarshalUpdateResponse(res *uploaddirectory_s.UploadDirectory, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

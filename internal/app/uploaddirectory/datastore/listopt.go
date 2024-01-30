@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (impl FolderInfoStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *FolderInfoPaginationListFilter) ([]*FolderInfoAsSelectOption, error) {
+func (impl UploadDirectoryStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) ([]*UploadDirectoryAsSelectOption, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -59,7 +59,7 @@ func (impl FolderInfoStorerImpl) ListAsSelectOptionByFilter(ctx context.Context,
 	}
 	defer cursor.Close(ctx)
 
-	var results = []*FolderInfoAsSelectOption{}
+	var results = []*UploadDirectoryAsSelectOption{}
 	if err = cursor.All(ctx, &results); err != nil {
 		panic(err)
 	}

@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (impl FolderInfoStorerImpl) ListByFilter(ctx context.Context, f *FolderInfoPaginationListFilter) (*FolderInfoPaginationListResult, error) {
+func (impl UploadDirectoryStorerImpl) ListByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) (*UploadDirectoryPaginationListResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -24,7 +24,7 @@ func (impl FolderInfoStorerImpl) ListByFilter(ctx context.Context, f *FolderInfo
 	}
 
 	// if f.ExcludeArchived {
-	// 	filter["status"] = bson.M{"$ne": FolderInfoStatusArchived} // Do not list archived items! This code
+	// 	filter["status"] = bson.M{"$ne": UploadDirectoryStatusArchived} // Do not list archived items! This code
 	// }
 	if f.Status != 0 {
 		filter["status"] = f.Status
@@ -59,10 +59,10 @@ func (impl FolderInfoStorerImpl) ListByFilter(ctx context.Context, f *FolderInfo
 	// }
 
 	// Retrieve the documents and check if there is a next page
-	results := []*FolderInfo{}
+	results := []*UploadDirectory{}
 	hasNextPage := false
 	for cursor.Next(ctx) {
-		document := &FolderInfo{}
+		document := &UploadDirectory{}
 		if err := cursor.Decode(document); err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func (impl FolderInfoStorerImpl) ListByFilter(ctx context.Context, f *FolderInfo
 		}
 	}
 
-	return &FolderInfoPaginationListResult{
+	return &UploadDirectoryPaginationListResult{
 		Results:     results,
 		NextCursor:  nextCursor,
 		HasNextPage: hasNextPage,

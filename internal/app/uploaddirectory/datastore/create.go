@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl FolderInfoStorerImpl) Create(ctx context.Context, u *FolderInfo) error {
+func (impl UploadDirectoryStorerImpl) Create(ctx context.Context, u *UploadDirectory) error {
 	// DEVELOPER NOTES:
 	// According to mongodb documentaiton:
 	//     Non-existent Databases and Collections
@@ -39,7 +39,7 @@ func (impl FolderInfoStorerImpl) Create(ctx context.Context, u *FolderInfo) erro
 	return nil
 }
 
-func (impl FolderInfoStorerImpl) generatePublicID(ctx context.Context, tenantID primitive.ObjectID) (uint64, error) {
+func (impl UploadDirectoryStorerImpl) generatePublicID(ctx context.Context, tenantID primitive.ObjectID) (uint64, error) {
 	var publicID uint64
 	latest, err := impl.GetLatestByTenantID(ctx, tenantID)
 	if err != nil {

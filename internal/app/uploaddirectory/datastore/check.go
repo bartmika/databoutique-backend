@@ -7,7 +7,7 @@ import (
 	"log/slog"
 )
 
-func (impl FolderInfoStorerImpl) CheckIfExistsByEmail(ctx context.Context, email string) (bool, error) {
+func (impl UploadDirectoryStorerImpl) CheckIfExistsByEmail(ctx context.Context, email string) (bool, error) {
 	filter := bson.D{{"email", email}}
 	count, err := impl.Collection.CountDocuments(ctx, filter)
 	if err != nil {

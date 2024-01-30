@@ -7,20 +7,20 @@ import (
 	"log/slog"
 )
 
-func (impl *FolderInfoControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *UploadDirectoryControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
 	// STEP 1: Lookup the record or error.
-	folderinfo, err := impl.GetByID(ctx, id)
+	uploaddirectory, err := impl.GetByID(ctx, id)
 	if err != nil {
 		impl.Logger.Error("database get by id error", slog.Any("error", err))
 		return err
 	}
-	if folderinfo == nil {
+	if uploaddirectory == nil {
 		impl.Logger.Error("database returns nothing from get by id")
 		return err
 	}
 
 	// STEP 2: Delete from database.
-	if err := impl.FolderInfoStorer.DeleteByID(ctx, id); err != nil {
+	if err := impl.UploadDirectoryStorer.DeleteByID(ctx, id); err != nil {
 		impl.Logger.Error("database delete by id error", slog.Any("error", err))
 		return err
 	}

@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"strconv"
 
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
 func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &folderinfo_s.FolderInfoPaginationListFilter{
+	f := &uploaddirectory_s.UploadDirectoryPaginationListFilter{
 		PageSize: 1_000_000,
 		// LastID:    "",
 		SortField: "sort_number",
 		SortOrder: 1, // 1=ascending | -1=descending
-		Status:    folderinfo_s.FolderInfoStatusActive,
+		Status:    uploaddirectory_s.UploadDirectoryStatusActive,
 	}
 
 	// Here is where you extract url parameters.
@@ -39,7 +39,7 @@ func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Requ
 	MarshalListAsSelectOptionResponse(m, w)
 }
 
-func MarshalListAsSelectOptionResponse(res []*folderinfo_s.FolderInfoAsSelectOption, w http.ResponseWriter) {
+func MarshalListAsSelectOptionResponse(res []*uploaddirectory_s.UploadDirectoryAsSelectOption, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,12 +49,12 @@ func MarshalListAsSelectOptionResponse(res []*folderinfo_s.FolderInfoAsSelectOpt
 func (h *Handler) PublicListAsSelectOptions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &folderinfo_s.FolderInfoPaginationListFilter{
+	f := &uploaddirectory_s.UploadDirectoryPaginationListFilter{
 		PageSize: 1_000_000,
 		// LastID:    "",
 		SortField: "sort_number",
 		SortOrder: 1, // 1=ascending | -1=descending
-		Status:    folderinfo_s.FolderInfoStatusActive,
+		Status:    uploaddirectory_s.UploadDirectoryStatusActive,
 	}
 
 	// Here is where you extract url parameters.

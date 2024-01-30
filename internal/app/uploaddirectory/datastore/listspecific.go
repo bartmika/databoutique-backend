@@ -6,14 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl FolderInfoStorerImpl) ListByTenantID(ctx context.Context, tid primitive.ObjectID) (*FolderInfoPaginationListResult, error) {
-	f := &FolderInfoPaginationListFilter{
+func (impl UploadDirectoryStorerImpl) ListByTenantID(ctx context.Context, tid primitive.ObjectID) (*UploadDirectoryPaginationListResult, error) {
+	f := &UploadDirectoryPaginationListFilter{
 		Cursor:    "",
 		PageSize:  1_000_000_000, // Unlimited
 		SortField: "sort_number",
 		SortOrder: 1,
 		TenantID:  tid,
-		Status:    FolderInfoStatusActive,
+		Status:    UploadDirectoryStatusActive,
 	}
 	return impl.ListByFilter(ctx, f)
 }

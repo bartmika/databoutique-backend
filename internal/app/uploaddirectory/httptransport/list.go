@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &folderinfo_s.FolderInfoPaginationListFilter{
+	f := &uploaddirectory_s.UploadDirectoryPaginationListFilter{
 		Cursor:    "",
 		PageSize:  25,
 		SortField: "sort_number",
@@ -64,7 +64,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	MarshalListResponse(m, w)
 }
 
-func MarshalListResponse(res *folderinfo_s.FolderInfoPaginationListResult, w http.ResponseWriter) {
+func MarshalListResponse(res *uploaddirectory_s.UploadDirectoryPaginationListResult, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

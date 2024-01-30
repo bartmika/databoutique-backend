@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func (impl FolderInfoStorerImpl) CreateOrGetByID(ctx context.Context, hh *FolderInfo) (*FolderInfo, error) {
+func (impl UploadDirectoryStorerImpl) CreateOrGetByID(ctx context.Context, hh *UploadDirectory) (*UploadDirectory, error) {
 	res, err := impl.GetByID(ctx, hh.ID)
 	if err != nil {
 		return nil, err

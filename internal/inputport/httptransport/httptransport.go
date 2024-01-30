@@ -15,12 +15,12 @@ import (
 
 	executable "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
 	// fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
-	// folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 	program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
+	uploaddirectory "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/httptransport"
 	user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/config"
 	"github.com/bartmika/databoutique-backend/internal/inputport/httptransport/middleware"
@@ -47,9 +47,9 @@ type httpTransportInputPort struct {
 	AssistantMessage *assistantmessage.Handler
 	ProgramCategory  *programcategory.Handler
 	// FileInfo         *fileinfo.Handler
-	// FolderInfo       *folderinfo.Handler
-	Program    *program.Handler
-	Executable *executable.Handler
+	UploadDirectory *uploaddirectory.Handler
+	Program         *program.Handler
+	Executable      *executable.Handler
 }
 
 func NewInputPort(
@@ -67,7 +67,7 @@ func NewInputPort(
 	am *assistantmessage.Handler,
 	pc *programcategory.Handler,
 	// fi *fileinfo.Handler,
-	// fo *folderinfo.Handler,
+	updir *uploaddirectory.Handler,
 	prog *program.Handler,
 	exec *executable.Handler,
 ) InputPortServer {
@@ -101,8 +101,8 @@ func NewInputPort(
 		AssistantThread:  at,
 		AssistantMessage: am,
 		ProgramCategory:  pc,
+		UploadDirectory:  updir,
 		// FileInfo:         fi,
-		// FolderInfo:       fo,
 		Program:    prog,
 		Executable: exec,
 		Server:     srv,
@@ -208,6 +208,20 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	case n == 4 && p[1] == "v1" && p[2] == "program-categories" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.ProgramCategory.ListAsSelectOptionByFilter(w, r)
 
+	// --- UPLOAD DIRECTORY --- //
+	case n == 3 && p[1] == "v1" && p[2] == "upload-directories" && r.Method == http.MethodGet:
+		port.UploadDirectory.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "upload-directories" && r.Method == http.MethodPost:
+		port.UploadDirectory.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "upload-directory" && r.Method == http.MethodGet:
+		port.UploadDirectory.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-directory" && r.Method == http.MethodPut:
+		port.UploadDirectory.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-directory" && r.Method == http.MethodDelete:
+		port.UploadDirectory.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-directories" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.UploadDirectory.ListAsSelectOptionByFilter(w, r)
+
 	// // --- FILE INFO --- //
 	// case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodGet:
 	// 	port.FileInfo.List(w, r)
@@ -221,21 +235,7 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	// 	port.FileInfo.DeleteByID(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "files" && p[3] == "select-options" && r.Method == http.MethodGet:
 	// 	port.FileInfo.ListAsSelectOptionByFilter(w, r)
-	//
-	// // --- FOLDER INFO --- //
-	// case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodGet:
-	// 	port.FolderInfo.List(w, r)
-	// case n == 3 && p[1] == "v1" && p[2] == "folders" && r.Method == http.MethodPost:
-	// 	port.FolderInfo.Create(w, r)
-	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodGet:
-	// 	port.FolderInfo.GetByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodPut:
-	// 	port.FolderInfo.UpdateByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "folder" && r.Method == http.MethodDelete:
-	// 	port.FolderInfo.DeleteByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "folders" && p[3] == "select-options" && r.Method == http.MethodGet:
-	// 	port.FolderInfo.ListAsSelectOptionByFilter(w, r)
-	//
+
 	// --- PROGRAM --- //
 	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
 		port.Program.List(w, r)

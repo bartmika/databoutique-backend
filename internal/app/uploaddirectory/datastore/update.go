@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (impl FolderInfoStorerImpl) UpdateByID(ctx context.Context, m *FolderInfo) error {
+func (impl UploadDirectoryStorerImpl) UpdateByID(ctx context.Context, m *UploadDirectory) error {
 	filter := bson.D{{"_id", m.ID}}
 
 	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010

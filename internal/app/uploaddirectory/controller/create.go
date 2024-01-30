@@ -8,13 +8,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	u_s "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
-type FolderInfoCreateRequestIDO struct {
+type UploadDirectoryCreateRequestIDO struct {
 	Text           string `bson:"text" json:"text"`
 	SortNumber     int8   `bson:"sort_number" json:"sort_number"`
 	IsForAssociate bool   `bson:"is_for_associate" json:"is_for_associate"`
@@ -22,7 +22,7 @@ type FolderInfoCreateRequestIDO struct {
 	IsForStaff     bool   `bson:"is_for_staff" json:"is_for_staff"`
 }
 
-func (impl *FolderInfoControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *FolderInfoCreateRequestIDO) error {
+func (impl *UploadDirectoryControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *UploadDirectoryCreateRequestIDO) error {
 	e := make(map[string]string)
 
 	if dirtyData.Text == "" {
@@ -38,7 +38,7 @@ func (impl *FolderInfoControllerImpl) validateCreateRequest(ctx context.Context,
 	return nil
 }
 
-func (impl *FolderInfoControllerImpl) Create(ctx context.Context, requestData *FolderInfoCreateRequestIDO) (*folderinfo_s.FolderInfo, error) {
+func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestData *UploadDirectoryCreateRequestIDO) (*uploaddirectory_s.UploadDirectory, error) {
 	//
 	// Get variables from our user authenticated session.
 	//
@@ -93,7 +93,7 @@ func (impl *FolderInfoControllerImpl) Create(ctx context.Context, requestData *F
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		hh := &folderinfo_s.FolderInfo{}
+		hh := &uploaddirectory_s.UploadDirectory{}
 
 		// Add defaults.
 		hh.TenantID = tid
@@ -110,10 +110,10 @@ func (impl *FolderInfoControllerImpl) Create(ctx context.Context, requestData *F
 		// Add base.
 		hh.Text = requestData.Text
 		hh.SortNumber = requestData.SortNumber
-		hh.Status = folderinfo_s.FolderInfoStatusActive
+		hh.Status = uploaddirectory_s.UploadDirectoryStatusActive
 
 		// Save to our database.
-		if err := impl.FolderInfoStorer.Create(sessCtx, hh); err != nil {
+		if err := impl.UploadDirectoryStorer.Create(sessCtx, hh); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
@@ -133,5 +133,5 @@ func (impl *FolderInfoControllerImpl) Create(ctx context.Context, requestData *F
 		return nil, err
 	}
 
-	return result.(*folderinfo_s.FolderInfo), nil
+	return result.(*uploaddirectory_s.UploadDirectory), nil
 }

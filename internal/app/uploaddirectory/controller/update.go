@@ -9,19 +9,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	folderinfo_s "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	u_s "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
-type FolderInfoUpdateRequestIDO struct {
+type UploadDirectoryUpdateRequestIDO struct {
 	ID         primitive.ObjectID `bson:"id" json:"id"`
 	Text       string             `bson:"text" json:"text"`
 	SortNumber int8               `bson:"sort_number" json:"sort_number"`
 }
 
-func (impl *FolderInfoControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *FolderInfoUpdateRequestIDO) error {
+func (impl *UploadDirectoryControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *UploadDirectoryUpdateRequestIDO) error {
 	e := make(map[string]string)
 
 	if dirtyData.Text == "" {
@@ -37,7 +37,7 @@ func (impl *FolderInfoControllerImpl) validateUpdateRequest(ctx context.Context,
 	return nil
 }
 
-func (impl *FolderInfoControllerImpl) UpdateByID(ctx context.Context, requestData *FolderInfoUpdateRequestIDO) (*folderinfo_s.FolderInfo, error) {
+func (impl *UploadDirectoryControllerImpl) UpdateByID(ctx context.Context, requestData *UploadDirectoryUpdateRequestIDO) (*uploaddirectory_s.UploadDirectory, error) {
 	//
 	// Perform our validation and return validation error on any issues detected.
 	//
@@ -83,14 +83,14 @@ func (impl *FolderInfoControllerImpl) UpdateByID(ctx context.Context, requestDat
 		//// Get data.
 		////
 
-		// Lookup the folderinfo in our database, else return a `400 Bad Request` error.
-		hh, err := impl.FolderInfoStorer.GetByID(sessCtx, requestData.ID)
+		// Lookup the uploaddirectory in our database, else return a `400 Bad Request` error.
+		hh, err := impl.UploadDirectoryStorer.GetByID(sessCtx, requestData.ID)
 		if err != nil {
 			impl.Logger.Error("database error", slog.Any("err", err))
 			return nil, err
 		}
 		if hh == nil {
-			impl.Logger.Warn("folderinfo does not exist validation error")
+			impl.Logger.Warn("uploaddirectory does not exist validation error")
 			return nil, httperror.NewForBadRequestWithSingleField("id", "does not exist")
 		}
 
@@ -109,8 +109,8 @@ func (impl *FolderInfoControllerImpl) UpdateByID(ctx context.Context, requestDat
 		hh.Text = requestData.Text
 		hh.SortNumber = requestData.SortNumber
 
-		if err := impl.FolderInfoStorer.UpdateByID(sessCtx, hh); err != nil {
-			impl.Logger.Error("folderinfo update by id error", slog.Any("error", err))
+		if err := impl.UploadDirectoryStorer.UpdateByID(sessCtx, hh); err != nil {
+			impl.Logger.Error("uploaddirectory update by id error", slog.Any("error", err))
 			return nil, err
 		}
 
@@ -135,5 +135,5 @@ func (impl *FolderInfoControllerImpl) UpdateByID(ctx context.Context, requestDat
 		return nil, err
 	}
 
-	return result.(*folderinfo_s.FolderInfo), nil
+	return result.(*uploaddirectory_s.UploadDirectory), nil
 }

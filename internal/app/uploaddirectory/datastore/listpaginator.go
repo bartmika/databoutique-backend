@@ -16,7 +16,7 @@ const (
 	OrderDescending = -1
 )
 
-type FolderInfoPaginationListFilter struct {
+type UploadDirectoryPaginationListFilter struct {
 	// Pagination related.
 	Cursor    string
 	PageSize  int64
@@ -29,17 +29,17 @@ type FolderInfoPaginationListFilter struct {
 	SearchText string
 }
 
-// FolderInfoPaginationListResult represents the paginated list results for
+// UploadDirectoryPaginationListResult represents the paginated list results for
 // the associate records.
-type FolderInfoPaginationListResult struct {
-	Results     []*FolderInfo `json:"results"`
+type UploadDirectoryPaginationListResult struct {
+	Results     []*UploadDirectory `json:"results"`
 	NextCursor  string             `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or
 // or ignore it depending if a cursor was specified in the filter.
-func (impl FolderInfoStorerImpl) newPaginationFilter(f *FolderInfoPaginationListFilter) (bson.M, error) {
+func (impl UploadDirectoryStorerImpl) newPaginationFilter(f *UploadDirectoryPaginationListFilter) (bson.M, error) {
 	if len(f.Cursor) > 0 {
 		// STEP 1: Decode the cursor which is encoded in a base64 format.
 		decodedCursor, err := base64.RawStdEncoding.DecodeString(f.Cursor)
@@ -62,7 +62,7 @@ func (impl FolderInfoStorerImpl) newPaginationFilter(f *FolderInfoPaginationList
 	return bson.M{}, nil
 }
 
-func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnString(f *FolderInfoPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl UploadDirectoryStorerImpl) newPaginationFilterBasedOnString(f *UploadDirectoryPaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -97,7 +97,7 @@ func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnString(f *FolderInfoP
 	}
 }
 
-func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnInt8(f *FolderInfoPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl UploadDirectoryStorerImpl) newPaginationFilterBasedOnInt8(f *UploadDirectoryPaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -132,7 +132,7 @@ func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnInt8(f *FolderInfoPag
 	}
 }
 
-func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnTimestamp(f *FolderInfoPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl UploadDirectoryStorerImpl) newPaginationFilterBasedOnTimestamp(f *UploadDirectoryPaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -174,7 +174,7 @@ func (impl FolderInfoStorerImpl) newPaginationFilterBasedOnTimestamp(f *FolderIn
 
 // newPaginatorOptions will generate the mongodb options which will support the
 // paginator in ordering the data to work.
-func (impl FolderInfoStorerImpl) newPaginationOptions(f *FolderInfoPaginationListFilter) (*options.FindOptions, error) {
+func (impl UploadDirectoryStorerImpl) newPaginationOptions(f *UploadDirectoryPaginationListFilter) (*options.FindOptions, error) {
 	options := options.Find().SetLimit(f.PageSize)
 
 	// DEVELOPERS NOTE:
@@ -193,8 +193,8 @@ func (impl FolderInfoStorerImpl) newPaginationOptions(f *FolderInfoPaginationLis
 
 // newPaginatorNextCursor will return the base64 encoded next cursor which works
 // with our paginator.
-func (impl FolderInfoStorerImpl) newPaginatorNextCursor(f *FolderInfoPaginationListFilter, results []*FolderInfo) (string, error) {
-	var lastDatum *FolderInfo
+func (impl UploadDirectoryStorerImpl) newPaginatorNextCursor(f *UploadDirectoryPaginationListFilter, results []*UploadDirectory) (string, error) {
+	var lastDatum *UploadDirectory
 
 	// Remove the extra document from the current page
 	results = results[:]
