@@ -28,6 +28,8 @@ import (
 	ds_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/datastore"
 	ds_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
 	ds_exec "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	ds_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	ds_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
 	ds_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
 	ds_program "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	ds_programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
@@ -40,6 +42,8 @@ import (
 	uc_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/controller"
 	uc_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
 	uc_exec "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
+	uc_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
+	uc_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
 	uc_gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	uc_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
 	uc_program "github.com/bartmika/databoutique-backend/internal/app/program/controller"
@@ -53,6 +57,8 @@ import (
 	http_assistantthread "github.com/bartmika/databoutique-backend/internal/app/assistantthread/httptransport"
 	http_attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
 	http_exec "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	http_fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
+	http_folderinfo "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	http_gate "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	http_howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 	http_program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
@@ -99,6 +105,8 @@ func InitializeEvent() Application {
 		ds_assistantthread.NewDatastore,
 		ds_assistantmessage.NewDatastore,
 		ds_programcategory.NewDatastore,
+		ds_fileinfo.NewDatastore,
+		ds_folderinfo.NewDatastore,
 		ds_program.NewDatastore,
 		ds_exec.NewDatastore,
 
@@ -113,6 +121,8 @@ func InitializeEvent() Application {
 		uc_assistantthread.NewController,
 		uc_assistantmessage.NewController,
 		uc_programcategory.NewController,
+		uc_fileinfo.NewController,
+		uc_folderinfo.NewController,
 		uc_program.NewController,
 		uc_exec.NewController,
 
@@ -127,6 +137,8 @@ func InitializeEvent() Application {
 		http_assistantthread.NewHandler,
 		http_assistantmessage.NewHandler,
 		http_programcategory.NewHandler,
+		http_fileinfo.NewHandler,
+		http_folderinfo.NewHandler,
 		http_program.NewHandler,
 		http_exec.NewHandler,
 

@@ -26,17 +26,23 @@ import (
 	controller5 "github.com/bartmika/databoutique-backend/internal/app/attachment/controller"
 	datastore4 "github.com/bartmika/databoutique-backend/internal/app/attachment/datastore"
 	httptransport5 "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
-	controller12 "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
-	datastore11 "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
-	httptransport12 "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	controller14 "github.com/bartmika/databoutique-backend/internal/app/executable/controller"
+	datastore13 "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	httptransport14 "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
+	controller11 "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
+	datastore10 "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	httptransport11 "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
+	controller12 "github.com/bartmika/databoutique-backend/internal/app/folderinfo/controller"
+	datastore11 "github.com/bartmika/databoutique-backend/internal/app/folderinfo/datastore"
+	httptransport12 "github.com/bartmika/databoutique-backend/internal/app/folderinfo/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/app/gateway/controller"
 	httptransport2 "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	controller4 "github.com/bartmika/databoutique-backend/internal/app/howhear/controller"
 	datastore3 "github.com/bartmika/databoutique-backend/internal/app/howhear/datastore"
 	httptransport4 "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
-	controller11 "github.com/bartmika/databoutique-backend/internal/app/program/controller"
-	datastore10 "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
-	httptransport11 "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
+	controller13 "github.com/bartmika/databoutique-backend/internal/app/program/controller"
+	datastore12 "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
+	httptransport13 "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	controller10 "github.com/bartmika/databoutique-backend/internal/app/programcategory/controller"
 	datastore9 "github.com/bartmika/databoutique-backend/internal/app/programcategory/datastore"
 	httptransport10 "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
@@ -47,7 +53,7 @@ import (
 	"github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	httptransport3 "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/config"
-	httptransport13 "github.com/bartmika/databoutique-backend/internal/inputport/httptransport"
+	httptransport15 "github.com/bartmika/databoutique-backend/internal/inputport/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/inputport/httptransport/middleware"
 	"github.com/bartmika/databoutique-backend/internal/provider/jwt"
 	"github.com/bartmika/databoutique-backend/internal/provider/kmutex"
@@ -108,13 +114,19 @@ func InitializeEvent() Application {
 	programCategoryStorer := datastore9.NewDatastore(conf, slogLogger, client)
 	programCategoryController := controller10.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, programCategoryStorer)
 	handler9 := httptransport10.NewHandler(slogLogger, programCategoryController)
-	programStorer := datastore10.NewDatastore(conf, slogLogger, client)
-	programController := controller11.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, programStorer)
-	handler10 := httptransport11.NewHandler(slogLogger, programController)
-	executableStorer := datastore11.NewDatastore(conf, slogLogger, client)
-	executableController := controller12.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, executableStorer)
-	handler11 := httptransport12.NewHandler(slogLogger, executableController)
-	inputPortServer := httptransport13.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5, handler6, handler7, handler8, handler9, handler10, handler11)
+	fileInfoStorer := datastore10.NewDatastore(conf, slogLogger, client)
+	fileInfoController := controller11.NewController(conf, slogLogger, provider, s3Storager, client, emailer, tenantStorer, fileInfoStorer, userStorer)
+	handler10 := httptransport11.NewHandler(fileInfoController)
+	folderInfoStorer := datastore11.NewDatastore(conf, slogLogger, client)
+	folderInfoController := controller12.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, folderInfoStorer)
+	handler11 := httptransport12.NewHandler(slogLogger, folderInfoController)
+	programStorer := datastore12.NewDatastore(conf, slogLogger, client)
+	programController := controller13.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, programStorer)
+	handler12 := httptransport13.NewHandler(slogLogger, programController)
+	executableStorer := datastore13.NewDatastore(conf, slogLogger, client)
+	executableController := controller14.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, executableStorer)
+	handler13 := httptransport14.NewHandler(slogLogger, executableController)
+	inputPortServer := httptransport15.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5, handler6, handler7, handler8, handler9, handler10, handler11, handler12, handler13)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }
