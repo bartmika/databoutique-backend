@@ -44,7 +44,7 @@ type UploadDirectoryListResult struct {
 
 type UploadDirectoryAsSelectOption struct {
 	Value primitive.ObjectID `bson:"_id" json:"value"` // Extract from the database `_id` field and output through API as `value`.
-	Label string             `bson:"text" json:"label"`
+	Label string             `bson:"name" json:"label"`
 }
 
 // UploadDirectoryStorer Interface for user.

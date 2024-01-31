@@ -194,20 +194,6 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	case n == 4 && p[1] == "v1" && p[2] == "tenants" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.Tenant.ListAsSelectOptionByFilter(w, r)
 
-	// --- PROGRAM CATEGORY --- //
-	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodGet:
-		port.ProgramCategory.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodPost:
-		port.ProgramCategory.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodGet:
-		port.ProgramCategory.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodPut:
-		port.ProgramCategory.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodDelete:
-		port.ProgramCategory.DeleteByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "program-categories" && p[3] == "select-options" && r.Method == http.MethodGet:
-		port.ProgramCategory.ListAsSelectOptionByFilter(w, r)
-
 	// --- UPLOAD DIRECTORY --- //
 	case n == 3 && p[1] == "v1" && p[2] == "upload-directories" && r.Method == http.MethodGet:
 		port.UploadDirectory.List(w, r)
@@ -235,6 +221,20 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 		port.UploadFile.DeleteByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "upload-files" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.UploadFile.ListAsSelectOptionByFilter(w, r)
+
+	// --- PROGRAM CATEGORY --- //
+	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodGet:
+		port.ProgramCategory.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "program-categories" && r.Method == http.MethodPost:
+		port.ProgramCategory.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodGet:
+		port.ProgramCategory.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodPut:
+		port.ProgramCategory.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-category" && r.Method == http.MethodDelete:
+		port.ProgramCategory.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "program-categories" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.ProgramCategory.ListAsSelectOptionByFilter(w, r)
 
 	// --- PROGRAM --- //
 	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:
