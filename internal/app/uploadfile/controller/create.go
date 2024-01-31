@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log/slog"
 	"mime/multipart"
@@ -14,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	a_d "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	a_d "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
@@ -22,15 +21,16 @@ import (
 // Special:
 // https://freedium.cfd/https://story.tomasen.org/openais-assistant-api-in-go-a-practical-guide-4b9e7243ebff
 
-type FileInfoCreateRequestIDO struct {
-	Name        string
-	Description string
-	FileName    string
-	FileType    string
-	File        multipart.File
+type UploadFileCreateRequestIDO struct {
+	Name              string
+	Description       string
+	FileName          string
+	FileType          string
+	File              multipart.File
+	UploadDirectoryID primitive.ObjectID
 }
 
-func validateCreateRequest(dirtyData *FileInfoCreateRequestIDO) error {
+func validateCreateRequest(dirtyData *UploadFileCreateRequestIDO) error {
 	e := make(map[string]string)
 
 	if dirtyData.Name == "" {
@@ -42,18 +42,22 @@ func validateCreateRequest(dirtyData *FileInfoCreateRequestIDO) error {
 	if dirtyData.FileName == "" {
 		e["file"] = "missing value"
 	}
+	if dirtyData.UploadDirectoryID.IsZero() {
+		e["upload_directory_id"] = "missing value"
+	}
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
 	}
 	return nil
 }
 
-func (impl *FileInfoControllerImpl) Create(ctx context.Context, req *FileInfoCreateRequestIDO) (*a_d.FileInfo, error) {
+func (impl *UploadFileControllerImpl) Create(ctx context.Context, req *UploadFileCreateRequestIDO) (*a_d.UploadFile, error) {
 	// Extract from our session the following data.
 	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	tenantName, _ := ctx.Value(constants.SessionUserTenantName).(string)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := ctx.Value(constants.SessionUserName).(string)
+	userLexicalName, _ := ctx.Value(constants.SessionUserLexicalName).(string)
 
 	if err := validateCreateRequest(req); err != nil {
 		return nil, err
@@ -73,18 +77,23 @@ func (impl *FileInfoControllerImpl) Create(ctx context.Context, req *FileInfoCre
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		// The following code will choose the directory we will upload based on the image type.
-		var directory string = "assistant-files"
 
-		// Generate the key of our upload.
-		objectKey := fmt.Sprintf("tenant/%v/%v/%v", tenantID.Hex(), directory, req.FileName)
+		uploadDirectory, err := impl.UploadDirectoryStorer.GetByID(sessCtx, req.UploadDirectoryID)
+		if err != nil {
+			impl.Logger.Error("failed getting upload directory",
+				slog.String("tenant_id", tenantID.Hex()),
+				slog.String("upload_directory_id", req.UploadDirectoryID.Hex()),
+				slog.Any("error", err))
+			return nil, err
+		}
+		if uploadDirectory == nil {
+			return nil, errors.New("upload directory does not exist")
+		}
 
 		// For debugging purposes only.
 		impl.Logger.Debug("pre-upload meta",
 			slog.String("FileName", req.FileName),
 			slog.String("FileType", req.FileType),
-			slog.String("Directory", directory),
-			slog.String("ObjectKey", objectKey),
 			slog.String("Name", req.Name),
 			slog.String("Desc", req.Description),
 			slog.Any("tenantID", tenantID),
@@ -92,17 +101,6 @@ func (impl *FileInfoControllerImpl) Create(ctx context.Context, req *FileInfoCre
 			slog.Any("userID", userID),
 			slog.String("userName", userName),
 		)
-
-		// go func(file multipart.File, objkey string) {
-		// 	impl.Logger.Debug("beginning private s3 file upload...")
-		// 	if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
-		// 		impl.Logger.Error("private s3 file upload error", slog.Any("error", err))
-		// 		// Do not return an error, simply continue this function as there might
-		// 		// be a case were the file was removed on the s3 bucket by ourselves
-		// 		// or some other reason.
-		// 	}
-		// 	impl.Logger.Debug("Finished private s3 file upload")
-		// }(req.File, objectKey)
 
 		creds, err := impl.TenantStorer.GetOpenAICredentialsByID(sessCtx, tenantID)
 		if err != nil {
@@ -133,26 +131,31 @@ func (impl *FileInfoControllerImpl) Create(ctx context.Context, req *FileInfoCre
 			slog.Any("file_id", fileID))
 
 		// Create our meta record in the database.
-		res := &a_d.FileInfo{
-			TenantID:           tenantID,
-			TenantName:         tenantName,
-			ID:                 primitive.NewObjectID(),
-			CreatedAt:          time.Now(),
-			CreatedByUserName:  userName,
-			CreatedByUserID:    userID,
-			ModifiedAt:         time.Now(),
-			ModifiedByUserName: userName,
-			ModifiedByUserID:   userID,
-			Name:               req.Name,
-			Description:        req.Description,
-			Filename:           req.FileName,
-			ObjectKey:          objectKey,
-			ObjectURL:          "",
-			Status:             a_d.StatusActive,
-			OpenAIFileID:       fileID,
+		res := &a_d.UploadFile{
+			UploadDirectoryID:   uploadDirectory.ID,
+			UploadDirectoryName: uploadDirectory.Name,
+			TenantID:            tenantID,
+			TenantName:          tenantName,
+			ID:                  primitive.NewObjectID(),
+			CreatedAt:           time.Now(),
+			CreatedByUserName:   userName,
+			CreatedByUserID:     userID,
+			ModifiedAt:          time.Now(),
+			ModifiedByUserName:  userName,
+			ModifiedByUserID:    userID,
+			Name:                req.Name,
+			Description:         req.Description,
+			Filename:            req.FileName,
+			ObjectKey:           "",
+			ObjectURL:           "",
+			Status:              a_d.StatusActive,
+			OpenAIFileID:        fileID,
+			UserID:              userID,
+			UserName:            userName,
+			UserLexicalName:     userLexicalName,
 		}
-		if err := impl.FileInfoStorer.Create(sessCtx, res); err != nil {
-			impl.Logger.Error("assistant file create error",
+		if err := impl.UploadFileStorer.Create(sessCtx, res); err != nil {
+			impl.Logger.Error("upload file create error",
 				slog.String("tenant_id", tenantID.Hex()),
 				slog.Any("error", err))
 			return nil, err
@@ -168,7 +171,7 @@ func (impl *FileInfoControllerImpl) Create(ctx context.Context, req *FileInfoCre
 		return nil, err
 	}
 
-	return result.(*a_d.FileInfo), nil
+	return result.(*a_d.UploadFile), nil
 }
 
 func isStructEmpty(s interface{}) bool {
@@ -177,7 +180,7 @@ func isStructEmpty(s interface{}) bool {
 	return reflect.DeepEqual(val.Interface(), zeroVal.Interface())
 }
 
-func (impl *FileInfoControllerImpl) uploadContentFromMulipart(ctx context.Context, filename string, file multipart.File, apikey string, orgKey string) (string, error) {
+func (impl *UploadFileControllerImpl) uploadContentFromMulipart(ctx context.Context, filename string, file multipart.File, apikey string, orgKey string) (string, error) {
 	impl.Logger.Debug("openai initializing...")
 	client := openai.NewOrgClient(apikey, orgKey)
 	impl.Logger.Debug("openai initialized")

@@ -9,27 +9,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
-	u_s "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
 type UploadDirectoryCreateRequestIDO struct {
-	Text           string `bson:"text" json:"text"`
-	SortNumber     int8   `bson:"sort_number" json:"sort_number"`
-	IsForAssociate bool   `bson:"is_for_associate" json:"is_for_associate"`
-	IsForCustomer  bool   `bson:"is_for_customer" json:"is_for_customer"`
-	IsForStaff     bool   `bson:"is_for_staff" json:"is_for_staff"`
+	Name        string `bson:"name" json:"name"`
+	Description string `bson:"description" json:"description"`
+	SortNumber  int8   `bson:"sort_number" json:"sort_number"`
 }
 
 func (impl *UploadDirectoryControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *UploadDirectoryCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
-	}
-	if dirtyData.SortNumber == 0 {
-		e["sort_number"] = "missing value"
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -44,7 +38,7 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 	//
 
 	tid, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
-	role, _ := ctx.Value(constants.SessionUserRole).(int8)
+	// role, _ := ctx.Value(constants.SessionUserRole).(int8)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := ctx.Value(constants.SessionUserName).(string)
 	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
@@ -70,13 +64,13 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 		return nil, err
 	}
 
-	switch role {
-	case u_s.UserRoleExecutive, u_s.UserRoleManagement, u_s.UserRoleFrontlineStaff:
-		break
-	default:
-		impl.Logger.Error("you do not have permission to create a client")
-		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission to create a client")
-	}
+	// switch role {
+	// case u_s.UserRoleExecutive, u_s.UserRoleManagement, u_s.UserRoleFrontlineStaff:
+	// 	break
+	// default:
+	// 	impl.Logger.Error("you do not have permission to create a client")
+	// 	return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission to create a client")
+	// }
 
 	////
 	//// Start the transaction.
@@ -108,7 +102,8 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 		hh.ModifiedFromIPAddress = ipAddress
 
 		// Add base.
-		hh.Text = requestData.Text
+		hh.Name = requestData.Name
+		hh.Description = requestData.Description
 		hh.SortNumber = requestData.SortNumber
 		hh.Status = uploaddirectory_s.UploadDirectoryStatusActive
 

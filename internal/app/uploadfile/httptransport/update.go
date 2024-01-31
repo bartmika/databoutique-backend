@@ -6,14 +6,14 @@ import (
 	"log"
 	"net/http"
 
-	a_c "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
-	sub_c "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
-	sub_s "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	a_c "github.com/bartmika/databoutique-backend/internal/app/uploadfile/controller"
+	sub_c "github.com/bartmika/databoutique-backend/internal/app/uploadfile/controller"
+	sub_s "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.FileInfoUpdateRequestIDO, error) {
+func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.UploadFileUpdateRequestIDO, error) {
 	defer r.Body.Close()
 
 	// Parse the multipart form data
@@ -40,11 +40,22 @@ func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.FileIn
 		log.Println("UnmarshalUpdateRequest: primitive.ObjectIDFromHex:err:", err)
 	}
 
+	uploadDirectoryID := primitive.NilObjectID
+	uploadDirectoryIDStr := r.FormValue("upload_directory_id")
+	if uploadDirectoryIDStr != "" {
+		uploadDirectoryID, err = primitive.ObjectIDFromHex(uploadDirectoryIDStr)
+		if err != nil {
+			log.Println("UnmarshalCmsImageCreateRequest:missing:uploadDirectoryID")
+			// return nil, err, http.StatusInternalServerError
+		}
+	}
+
 	// Initialize our array which will store all the results from the remote server.
-	requestData := &a_c.FileInfoUpdateRequestIDO{
-		ID:          aid,
-		Name:        name,
-		Description: description,
+	requestData := &a_c.UploadFileUpdateRequestIDO{
+		ID:                aid,
+		Name:              name,
+		Description:       description,
+		UploadDirectoryID: uploadDirectoryID,
 	}
 
 	if header != nil {
@@ -71,16 +82,16 @@ func (h *Handler) UpdateByID(w http.ResponseWriter, r *http.Request, idStr strin
 		httperror.ResponseError(w, err)
 		return
 	}
-	fileinfo, err := h.Controller.UpdateByID(ctx, data)
+	uploadfile, err := h.Controller.UpdateByID(ctx, data)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	MarshalUpdateResponse(fileinfo, w)
+	MarshalUpdateResponse(uploadfile, w)
 }
 
-func MarshalUpdateResponse(res *sub_s.FileInfo, w http.ResponseWriter) {
+func MarshalUpdateResponse(res *sub_s.UploadFile, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

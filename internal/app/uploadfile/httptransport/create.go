@@ -6,12 +6,13 @@ import (
 	"log"
 	"net/http"
 
-	a_c "github.com/bartmika/databoutique-backend/internal/app/fileinfo/controller"
-	a_s "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	a_c "github.com/bartmika/databoutique-backend/internal/app/uploadfile/controller"
+	a_s "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.FileInfoCreateRequestIDO, error) {
+func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.UploadFileCreateRequestIDO, error) {
 	defer r.Body.Close()
 
 	// Parse the multipart form data
@@ -32,10 +33,21 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.FileInfo
 		// return nil, err, http.StatusInternalServerError
 	}
 
+	uploadDirectoryID := primitive.NilObjectID
+	uploadDirectoryIDStr := r.FormValue("upload_directory_id")
+	if uploadDirectoryIDStr != "" {
+		uploadDirectoryID, err = primitive.ObjectIDFromHex(uploadDirectoryIDStr)
+		if err != nil {
+			log.Println("UnmarshalCmsImageCreateRequest:missing:uploadDirectoryID")
+			// return nil, err, http.StatusInternalServerError
+		}
+	}
+
 	// Initialize our array which will store all the results from the remote server.
-	requestData := &a_c.FileInfoCreateRequestIDO{
-		Name:        name,
-		Description: description,
+	requestData := &a_c.UploadFileCreateRequestIDO{
+		Name:              name,
+		Description:       description,
+		UploadDirectoryID: uploadDirectoryID,
 	}
 
 	if header != nil {
@@ -56,16 +68,16 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileinfo, err := h.Controller.Create(ctx, data)
+	uploadfile, err := h.Controller.Create(ctx, data)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	MarshalCreateResponse(fileinfo, w)
+	MarshalCreateResponse(uploadfile, w)
 }
 
-func MarshalCreateResponse(res *a_s.FileInfo, w http.ResponseWriter) {
+func MarshalCreateResponse(res *a_s.UploadFile, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

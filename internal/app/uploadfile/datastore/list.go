@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (impl FileInfoStorerImpl) ListByFilter(ctx context.Context, f *FileInfoPaginationListFilter) (*FileInfoPaginationListResult, error) {
+func (impl UploadFileStorerImpl) ListByFilter(ctx context.Context, f *UploadFilePaginationListFilter) (*UploadFilePaginationListResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -81,16 +81,16 @@ func (impl FileInfoStorerImpl) ListByFilter(ctx context.Context, f *FileInfoPagi
 	}
 	defer cursor.Close(ctx)
 
-	// var results = []*FileInfo{}
+	// var results = []*UploadFile{}
 	// if err = cursor.All(ctx, &results); err != nil {
 	// 	panic(err)
 	// }
 
 	// Retrieve the documents and check if there is a next page
-	results := []*FileInfo{}
+	results := []*UploadFile{}
 	hasNextPage := false
 	for cursor.Next(ctx) {
-		document := &FileInfo{}
+		document := &UploadFile{}
 		if err := cursor.Decode(document); err != nil {
 			return nil, err
 		}
@@ -111,14 +111,14 @@ func (impl FileInfoStorerImpl) ListByFilter(ctx context.Context, f *FileInfoPagi
 		}
 	}
 
-	return &FileInfoPaginationListResult{
+	return &UploadFilePaginationListResult{
 		Results:     results,
 		NextCursor:  nextCursor,
 		HasNextPage: hasNextPage,
 	}, nil
 }
 
-func (impl FileInfoStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *FileInfoPaginationListFilter) ([]*FileInfoAsSelectOption, error) {
+func (impl UploadFileStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *UploadFilePaginationListFilter) ([]*UploadFileAsSelectOption, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -157,7 +157,7 @@ func (impl FileInfoStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f
 	}
 	defer cursor.Close(ctx)
 
-	var results = []*FileInfoAsSelectOption{}
+	var results = []*UploadFileAsSelectOption{}
 	if err = cursor.All(ctx, &results); err != nil {
 		return nil, nil
 	}

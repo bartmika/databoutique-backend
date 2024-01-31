@@ -15,6 +15,7 @@ const (
 	SessionUserUUID
 	SessionUserTimezone
 	SessionUserName
+	SessionUserLexicalName
 	SessionUserFirstName
 	SessionUserLastName
 	SessionUserTenantID

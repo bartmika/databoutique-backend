@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	sub_s "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	sub_s "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &sub_s.FileInfoPaginationListFilter{
+	f := &sub_s.UploadFilePaginationListFilter{
 		Cursor:    "",
 		PageSize:  25,
 		SortField: "created_at",
@@ -55,7 +55,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	MarshalListResponse(m, w)
 }
 
-func MarshalListResponse(res *sub_s.FileInfoPaginationListResult, w http.ResponseWriter) {
+func MarshalListResponse(res *sub_s.UploadFilePaginationListResult, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -65,7 +65,7 @@ func MarshalListResponse(res *sub_s.FileInfoPaginationListResult, w http.Respons
 func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &sub_s.FileInfoPaginationListFilter{
+	f := &sub_s.UploadFilePaginationListFilter{
 		Cursor:    "",
 		PageSize:  1_000_000_000,
 		SortField: "created_at",
@@ -81,7 +81,7 @@ func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Requ
 	MarshalListAsSelectOptionResponse(m, w)
 }
 
-func MarshalListAsSelectOptionResponse(res []*sub_s.FileInfoAsSelectOption, w http.ResponseWriter) {
+func MarshalListAsSelectOptionResponse(res []*sub_s.UploadFileAsSelectOption, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

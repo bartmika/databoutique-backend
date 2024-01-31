@@ -5,14 +5,14 @@ import (
 
 	"log/slog"
 
-	domain "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	domain "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	user_d "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (c *FileInfoControllerImpl) ListByFilter(ctx context.Context, f *domain.FileInfoPaginationListFilter) (*domain.FileInfoPaginationListResult, error) {
+func (c *UploadFileControllerImpl) ListByFilter(ctx context.Context, f *domain.UploadFilePaginationListFilter) (*domain.UploadFilePaginationListResult, error) {
 	// Extract from our session the following data.
 	orgID := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
@@ -25,7 +25,7 @@ func (c *FileInfoControllerImpl) ListByFilter(ctx context.Context, f *domain.Fil
 
 	c.Logger.Debug("fetching assistant files now...", slog.Any("userID", userID))
 
-	aa, err := c.FileInfoStorer.ListByFilter(ctx, f)
+	aa, err := c.UploadFileStorer.ListByFilter(ctx, f)
 	if err != nil {
 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 		return nil, err
@@ -44,7 +44,7 @@ func (c *FileInfoControllerImpl) ListByFilter(ctx context.Context, f *domain.Fil
 	return aa, err
 }
 
-func (c *FileInfoControllerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *domain.FileInfoPaginationListFilter) ([]*domain.FileInfoAsSelectOption, error) {
+func (c *UploadFileControllerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *domain.UploadFilePaginationListFilter) ([]*domain.UploadFileAsSelectOption, error) {
 	// Extract from our session the following data.
 	userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userRole := ctx.Value(constants.SessionUserRole).(int8)
@@ -59,7 +59,7 @@ func (c *FileInfoControllerImpl) ListAsSelectOptionByFilter(ctx context.Context,
 
 	c.Logger.Debug("fetching assistant files now...", slog.Any("userID", userID))
 
-	m, err := c.FileInfoStorer.ListAsSelectOptionByFilter(ctx, f)
+	m, err := c.UploadFileStorer.ListAsSelectOptionByFilter(ctx, f)
 	if err != nil {
 		c.Logger.Error("database list by filter error", slog.Any("error", err))
 		return nil, err

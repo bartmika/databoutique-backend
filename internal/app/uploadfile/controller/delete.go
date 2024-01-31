@@ -9,13 +9,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	attch_d "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	attch_d "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	user_d "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
-func (impl *FileInfoControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *UploadFileControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
 	// Extract from our session the following data.
 	userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userRole := ctx.Value(constants.SessionUserRole).(int8)
@@ -44,24 +44,24 @@ func (impl *FileInfoControllerImpl) DeleteByID(ctx context.Context, id primitive
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Update the database.
-		fileinfo, err := impl.GetByID(sessCtx, id)
-		fileinfo.Status = attch_d.StatusArchived
+		uploadfile, err := impl.GetByID(sessCtx, id)
+		uploadfile.Status = attch_d.StatusArchived
 		if err != nil {
 			impl.Logger.Error("database get by id error", slog.Any("error", err))
 			return nil, err
 		}
-		if fileinfo == nil {
+		if uploadfile == nil {
 			impl.Logger.Error("database returns nothing from get by id")
 			return nil, err
 		}
 		// // Security: Prevent deletion of root user(s).
-		// if fileinfo.Type == attch_d.RootType {
-		// 	impl.Logger.Warn("root fileinfo cannot be deleted error")
-		// 	return httperror.NewForForbiddenWithSingleField("role", "root fileinfo cannot be deleted")
+		// if uploadfile.Type == attch_d.RootType {
+		// 	impl.Logger.Warn("root uploadfile cannot be deleted error")
+		// 	return httperror.NewForForbiddenWithSingleField("role", "root uploadfile cannot be deleted")
 		// }
 
-		// Save to the database the modified fileinfo.
-		if err := impl.FileInfoStorer.UpdateByID(sessCtx, fileinfo); err != nil {
+		// Save to the database the modified uploadfile.
+		if err := impl.UploadFileStorer.UpdateByID(sessCtx, uploadfile); err != nil {
 			impl.Logger.Error("database update by id error", slog.Any("error", err))
 			return nil, err
 		}
@@ -78,7 +78,7 @@ func (impl *FileInfoControllerImpl) DeleteByID(ctx context.Context, id primitive
 	return nil
 }
 
-func (impl *FileInfoControllerImpl) PermanentlyDeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *UploadFileControllerImpl) PermanentlyDeleteByID(ctx context.Context, id primitive.ObjectID) error {
 	// Extract from our session the following data.
 	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
@@ -108,12 +108,12 @@ func (impl *FileInfoControllerImpl) PermanentlyDeleteByID(ctx context.Context, i
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Update the database.
-		fileinfo, err := impl.GetByID(sessCtx, id)
+		uploadfile, err := impl.GetByID(sessCtx, id)
 		if err != nil {
 			impl.Logger.Error("database get by id error", slog.Any("error", err))
 			return nil, err
 		}
-		if fileinfo == nil {
+		if uploadfile == nil {
 			impl.Logger.Error("database returns nothing from get by id")
 			return nil, errors.New("does not exist")
 		}
@@ -130,21 +130,21 @@ func (impl *FileInfoControllerImpl) PermanentlyDeleteByID(ctx context.Context, i
 		}
 
 		// // Proceed to delete the physical files from AWS s3.
-		// if err := impl.S3.DeleteByKeys(ctx, []string{fileinfo.ObjectKey}); err != nil {
+		// if err := impl.S3.DeleteByKeys(ctx, []string{uploadfile.ObjectKey}); err != nil {
 		// 	impl.Logger.Warn("s3 delete by keys error", slog.Any("error", err))
 		// 	// Do not return an error, simply continue this function as there might
 		// 	// be a case were the file was removed on the s3 bucket by ourselves
 		// 	// or some other reason.
 		// }
-		// impl.Logger.Debug("deleted from s3", slog.Any("fileinfo_id", id))
+		// impl.Logger.Debug("deleted from s3", slog.Any("uploadfile_id", id))
 
-		if err := impl.FileInfoStorer.DeleteByID(sessCtx, fileinfo.ID); err != nil {
+		if err := impl.UploadFileStorer.DeleteByID(sessCtx, uploadfile.ID); err != nil {
 			impl.Logger.Error("database delete by id error", slog.Any("error", err))
 			return nil, err
 		}
-		impl.Logger.Debug("deleted from database", slog.Any("fileinfo_id", id))
+		impl.Logger.Debug("deleted from database", slog.Any("uploadfile_id", id))
 
-		if err := impl.deleteOpanAIFile(sessCtx, fileinfo.OpenAIFileID, creds.APIKey, creds.OrgKey); err != nil {
+		if err := impl.deleteOpanAIFile(sessCtx, uploadfile.OpenAIFileID, creds.APIKey, creds.OrgKey); err != nil {
 			impl.Logger.Error("failed deleting file from openai", slog.Any("error", err))
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (impl *FileInfoControllerImpl) PermanentlyDeleteByID(ctx context.Context, i
 	return nil
 }
 
-func (impl *FileInfoControllerImpl) deleteOpanAIFile(ctx context.Context, fileID string, apikey string, orgKey string) error {
+func (impl *UploadFileControllerImpl) deleteOpanAIFile(ctx context.Context, fileID string, apikey string, orgKey string) error {
 	impl.Logger.Debug("openai initializing...")
 	client := openai.NewOrgClient(apikey, orgKey)
 	impl.Logger.Debug("openai initialized")
@@ -170,6 +170,6 @@ func (impl *FileInfoControllerImpl) deleteOpanAIFile(ctx context.Context, fileID
 		impl.Logger.Error("failed deleting open ai file", slog.Any("error", err))
 		return err
 	}
-	impl.Logger.Debug("deleted openai file from assistant api", slog.Any("fileinfo_id", fileID))
+	impl.Logger.Debug("deleted openai file from assistant api", slog.Any("uploadfile_id", fileID))
 	return nil
 }

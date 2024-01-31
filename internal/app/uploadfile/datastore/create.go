@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl FileInfoStorerImpl) Create(ctx context.Context, u *FileInfo) error {
+func (impl UploadFileStorerImpl) Create(ctx context.Context, u *UploadFile) error {
 	// DEVELOPER NOTES:
 	// According to mongodb documentaiton:
 	//     Non-existent Databases and Collections
@@ -16,7 +16,7 @@ func (impl FileInfoStorerImpl) Create(ctx context.Context, u *FileInfo) error {
 
 	if u.ID == primitive.NilObjectID {
 		u.ID = primitive.NewObjectID()
-		impl.Logger.Warn("database insert fileinfo not included id value, created id now.", slog.Any("id", u.ID))
+		impl.Logger.Warn("database insert uploadfile not included id value, created id now.", slog.Any("id", u.ID))
 	}
 
 	_, err := impl.Collection.InsertOne(ctx, u)

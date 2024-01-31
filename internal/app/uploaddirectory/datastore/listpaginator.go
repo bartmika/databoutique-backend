@@ -49,7 +49,7 @@ func (impl UploadDirectoryStorerImpl) newPaginationFilter(f *UploadDirectoryPagi
 
 		// STEP 2: Pick the specific cursor to build or else error.
 		switch f.SortField {
-		case "text":
+		case "name":
 			return impl.newPaginationFilterBasedOnString(f, string(decodedCursor))
 		case "sort_number":
 			return impl.newPaginationFilterBasedOnInt8(f, string(decodedCursor))
@@ -206,8 +206,8 @@ func (impl UploadDirectoryStorerImpl) newPaginatorNextCursor(f *UploadDirectoryP
 	var nextCursor string
 
 	switch f.SortField {
-	case "Text":
-		nextCursor = fmt.Sprintf("%v|%v", lastDatum.Text, lastDatum.ID.Hex())
+	case "name":
+		nextCursor = fmt.Sprintf("%v|%v", lastDatum.Name, lastDatum.ID.Hex())
 		break
 	case "sort_number":
 		nextCursor = fmt.Sprintf("%v|%v", lastDatum.SortNumber, lastDatum.ID.Hex())
@@ -217,7 +217,7 @@ func (impl UploadDirectoryStorerImpl) newPaginatorNextCursor(f *UploadDirectoryP
 		nextCursor = fmt.Sprintf("%v|%v", timestamp, lastDatum.ID.Hex())
 		break
 	default:
-		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `text` and `created_at`", f.SortField)
+		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `name` and `created_at`", f.SortField)
 	}
 
 	// Encode to base64 without the `=` symbol that would corrupt when we

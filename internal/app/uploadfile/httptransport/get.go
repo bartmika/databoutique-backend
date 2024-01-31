@@ -6,7 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	sub_s "github.com/bartmika/databoutique-backend/internal/app/fileinfo/datastore"
+	sub_s "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
@@ -28,7 +28,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request, id string) {
 	MarshalDetailResponse(m, w)
 }
 
-func MarshalDetailResponse(res *sub_s.FileInfo, w http.ResponseWriter) {
+func MarshalDetailResponse(res *sub_s.UploadFile, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

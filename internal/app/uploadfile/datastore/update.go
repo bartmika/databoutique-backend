@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (impl FileInfoStorerImpl) UpdateByID(ctx context.Context, m *FileInfo) error {
+func (impl UploadFileStorerImpl) UpdateByID(ctx context.Context, m *UploadFile) error {
 	filter := bson.D{{"_id", m.ID}}
 
 	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010

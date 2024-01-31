@@ -327,6 +327,7 @@ func (mid *middleware) PostJWTProcessorMiddleware(fn http.HandlerFunc) http.Hand
 			ctx = context.WithValue(ctx, constants.SessionUserRole, user.Role)
 			ctx = context.WithValue(ctx, constants.SessionUserHasStaffRole, user.HasStaffRole)
 			ctx = context.WithValue(ctx, constants.SessionUserName, user.Name)
+			ctx = context.WithValue(ctx, constants.SessionUserLexicalName, user.LexicalName)
 			ctx = context.WithValue(ctx, constants.SessionUserFirstName, user.FirstName)
 			ctx = context.WithValue(ctx, constants.SessionUserLastName, user.LastName)
 			ctx = context.WithValue(ctx, constants.SessionUserTenantID, user.TenantID)

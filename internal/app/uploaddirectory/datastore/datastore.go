@@ -21,7 +21,8 @@ const (
 type UploadDirectory struct {
 	ID                    primitive.ObjectID `bson:"_id" json:"id"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	Text                  string             `bson:"text" json:"text"`
+	Name                  string             `bson:"name" json:"name"`
+	Description           string             `bson:"description" json:"description"`
 	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
 	Status                int8               `bson:"status" json:"status"`
 	PublicID              uint64             `bson:"public_id" json:"public_id"`
@@ -76,7 +77,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Up
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},
 		{Keys: bson.D{{Key: "status", Value: 1}}},
 		{Keys: bson.D{
-			{"text", "text"},
+			{"name", "text"},
 		}},
 	})
 	if err != nil {

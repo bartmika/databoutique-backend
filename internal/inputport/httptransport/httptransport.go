@@ -14,13 +14,13 @@ import (
 	attachment "github.com/bartmika/databoutique-backend/internal/app/attachment/httptransport"
 
 	executable "github.com/bartmika/databoutique-backend/internal/app/executable/httptransport"
-	// fileinfo "github.com/bartmika/databoutique-backend/internal/app/fileinfo/httptransport"
 	gateway "github.com/bartmika/databoutique-backend/internal/app/gateway/httptransport"
 	howhear "github.com/bartmika/databoutique-backend/internal/app/howhear/httptransport"
 	program "github.com/bartmika/databoutique-backend/internal/app/program/httptransport"
 	programcategory "github.com/bartmika/databoutique-backend/internal/app/programcategory/httptransport"
 	tenant "github.com/bartmika/databoutique-backend/internal/app/tenant/httptransport"
 	uploaddirectory "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/httptransport"
+	uploadfile "github.com/bartmika/databoutique-backend/internal/app/uploadfile/httptransport"
 	user "github.com/bartmika/databoutique-backend/internal/app/user/httptransport"
 	"github.com/bartmika/databoutique-backend/internal/config"
 	"github.com/bartmika/databoutique-backend/internal/inputport/httptransport/middleware"
@@ -46,10 +46,10 @@ type httpTransportInputPort struct {
 	AssistantThread  *assistantthread.Handler
 	AssistantMessage *assistantmessage.Handler
 	ProgramCategory  *programcategory.Handler
-	// FileInfo         *fileinfo.Handler
-	UploadDirectory *uploaddirectory.Handler
-	Program         *program.Handler
-	Executable      *executable.Handler
+	UploadDirectory  *uploaddirectory.Handler
+	UploadFile       *uploadfile.Handler
+	Program          *program.Handler
+	Executable       *executable.Handler
 }
 
 func NewInputPort(
@@ -66,8 +66,8 @@ func NewInputPort(
 	at *assistantthread.Handler,
 	am *assistantmessage.Handler,
 	pc *programcategory.Handler,
-	// fi *fileinfo.Handler,
 	updir *uploaddirectory.Handler,
+	upfile *uploadfile.Handler,
 	prog *program.Handler,
 	exec *executable.Handler,
 ) InputPortServer {
@@ -102,10 +102,10 @@ func NewInputPort(
 		AssistantMessage: am,
 		ProgramCategory:  pc,
 		UploadDirectory:  updir,
-		// FileInfo:         fi,
-		Program:    prog,
-		Executable: exec,
-		Server:     srv,
+		UploadFile:       upfile,
+		Program:          prog,
+		Executable:       exec,
+		Server:           srv,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -222,19 +222,19 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 	case n == 4 && p[1] == "v1" && p[2] == "upload-directories" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.UploadDirectory.ListAsSelectOptionByFilter(w, r)
 
-	// // --- FILE INFO --- //
-	// case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodGet:
-	// 	port.FileInfo.List(w, r)
-	// case n == 3 && p[1] == "v1" && p[2] == "files" && r.Method == http.MethodPost:
-	// 	port.FileInfo.Create(w, r)
-	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodGet:
-	// 	port.FileInfo.GetByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodPut:
-	// 	port.FileInfo.UpdateByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "file" && r.Method == http.MethodDelete:
-	// 	port.FileInfo.DeleteByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "files" && p[3] == "select-options" && r.Method == http.MethodGet:
-	// 	port.FileInfo.ListAsSelectOptionByFilter(w, r)
+	// --- UPLOAD FILE --- //
+	case n == 3 && p[1] == "v1" && p[2] == "upload-files" && r.Method == http.MethodGet:
+		port.UploadFile.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "upload-files" && r.Method == http.MethodPost:
+		port.UploadFile.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "upload-file" && r.Method == http.MethodGet:
+		port.UploadFile.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-file" && r.Method == http.MethodPut:
+		port.UploadFile.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-file" && r.Method == http.MethodDelete:
+		port.UploadFile.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "upload-files" && p[3] == "select-options" && r.Method == http.MethodGet:
+		port.UploadFile.ListAsSelectOptionByFilter(w, r)
 
 	// --- PROGRAM --- //
 	case n == 3 && p[1] == "v1" && p[2] == "programs" && r.Method == http.MethodGet:

@@ -9,10 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (impl FileInfoStorerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*FileInfo, error) {
+func (impl UploadFileStorerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*UploadFile, error) {
 	filter := bson.M{"_id": id}
 
-	var result FileInfo
+	var result UploadFile
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

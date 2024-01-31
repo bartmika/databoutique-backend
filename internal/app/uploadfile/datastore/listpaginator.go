@@ -17,7 +17,7 @@ const (
 	OrderDescending = -1
 )
 
-type FileInfoPaginationListFilter struct {
+type UploadFilePaginationListFilter struct {
 	// Pagination related.
 	Cursor    string
 	PageSize  int64
@@ -39,17 +39,17 @@ type FileInfoPaginationListFilter struct {
 	CreatedAtLTE time.Time
 }
 
-// FileInfoPaginationListResult represents the paginated list results for
+// UploadFilePaginationListResult represents the paginated list results for
 // the customer records (meaning limited).
-type FileInfoPaginationListResult struct {
-	Results     []*FileInfo `json:"results"`
+type UploadFilePaginationListResult struct {
+	Results     []*UploadFile `json:"results"`
 	NextCursor  string           `json:"next_cursor"`
 	HasNextPage bool             `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or
 // or ignore it depending if a cursor was specified in the filter.
-func (impl FileInfoStorerImpl) newPaginationFilter(f *FileInfoPaginationListFilter) (bson.M, error) {
+func (impl UploadFileStorerImpl) newPaginationFilter(f *UploadFilePaginationListFilter) (bson.M, error) {
 	if len(f.Cursor) > 0 {
 		// STEP 1: Decode the cursor which is encoded in a base64 format.
 		decodedCursor, err := base64.RawStdEncoding.DecodeString(f.Cursor)
@@ -72,7 +72,7 @@ func (impl FileInfoStorerImpl) newPaginationFilter(f *FileInfoPaginationListFilt
 	return bson.M{}, nil
 }
 
-func (impl FileInfoStorerImpl) newPaginationFilterBasedOnString(f *FileInfoPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl UploadFileStorerImpl) newPaginationFilterBasedOnString(f *UploadFilePaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -107,7 +107,7 @@ func (impl FileInfoStorerImpl) newPaginationFilterBasedOnString(f *FileInfoPagin
 	}
 }
 
-func (impl FileInfoStorerImpl) newPaginationFilterBasedOnTimestamp(f *FileInfoPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl UploadFileStorerImpl) newPaginationFilterBasedOnTimestamp(f *UploadFilePaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -149,7 +149,7 @@ func (impl FileInfoStorerImpl) newPaginationFilterBasedOnTimestamp(f *FileInfoPa
 
 // newPaginatorOptions will generate the mongodb options which will support the
 // paginator in ordering the data to work.
-func (impl FileInfoStorerImpl) newPaginationOptions(f *FileInfoPaginationListFilter) (*options.FindOptions, error) {
+func (impl UploadFileStorerImpl) newPaginationOptions(f *UploadFilePaginationListFilter) (*options.FindOptions, error) {
 	options := options.Find().SetLimit(f.PageSize)
 
 	// DEVELOPERS NOTE:
@@ -168,8 +168,8 @@ func (impl FileInfoStorerImpl) newPaginationOptions(f *FileInfoPaginationListFil
 
 // newPaginatorNextCursor will return the base64 encoded next cursor which works
 // with our paginator.
-func (impl FileInfoStorerImpl) newPaginatorNextCursor(f *FileInfoPaginationListFilter, results []*FileInfo) (string, error) {
-	var lastDatum *FileInfo
+func (impl UploadFileStorerImpl) newPaginatorNextCursor(f *UploadFilePaginationListFilter, results []*UploadFile) (string, error) {
+	var lastDatum *UploadFile
 
 	// Remove the extra document from the current page
 	results = results[:]
@@ -202,8 +202,8 @@ func (impl FileInfoStorerImpl) newPaginatorNextCursor(f *FileInfoPaginationListF
 
 // newPaginatorNextCursor will return the base64 encoded next cursor which works
 // with our paginator.
-func (impl FileInfoStorerImpl) newPaginatorNextCursorForFull(f *FileInfoPaginationListFilter, results []*FileInfo) (string, error) {
-	var lastDatum *FileInfo
+func (impl UploadFileStorerImpl) newPaginatorNextCursorForFull(f *UploadFilePaginationListFilter, results []*UploadFile) (string, error) {
+	var lastDatum *UploadFile
 
 	// Remove the extra document from the current page
 	results = results[:]
