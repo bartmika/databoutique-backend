@@ -124,7 +124,7 @@ func InitializeEvent() Application {
 	programController := controller13.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, programStorer)
 	handler12 := httptransport13.NewHandler(slogLogger, programController)
 	executableStorer := datastore13.NewDatastore(conf, slogLogger, client)
-	executableController := controller14.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, userStorer, uploadDirectoryStorer, uploadFileStorer, programStorer, executableStorer)
+	executableController := controller14.NewController(conf, slogLogger, provider, s3Storager, passwordProvider, kmutexProvider, templatedEmailer, client, tenantStorer, userStorer, uploadDirectoryStorer, uploadFileStorer, programStorer, executableStorer)
 	handler13 := httptransport14.NewHandler(slogLogger, executableController)
 	inputPortServer := httptransport15.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5, handler6, handler7, handler8, handler9, handler10, handler11, handler12, handler13)
 	application := NewApplication(slogLogger, inputPortServer)

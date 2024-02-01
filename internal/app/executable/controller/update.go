@@ -16,20 +16,20 @@ import (
 )
 
 type ExecutableUpdateRequestIDO struct {
-	ID         primitive.ObjectID `bson:"id" json:"id"`
-	Text       string             `bson:"text" json:"text"`
-	SortNumber int8               `bson:"sort_number" json:"sort_number"`
+	ID primitive.ObjectID `bson:"id" json:"id"`
+	// Text       string             `bson:"text" json:"text"`
+	// SortNumber int8               `bson:"sort_number" json:"sort_number"`
 }
 
 func (impl *ExecutableControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *ExecutableUpdateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
-	}
-	if dirtyData.SortNumber == 0 {
-		e["sort_number"] = "missing value"
-	}
+	// if dirtyData.Text == "" {
+	// 	e["text"] = "missing value"
+	// }
+	// if dirtyData.SortNumber == 0 {
+	// 	e["sort_number"] = "missing value"
+	// }
 
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
@@ -106,8 +106,8 @@ func (impl *ExecutableControllerImpl) UpdateByID(ctx context.Context, requestDat
 		hh.ModifiedFromIPAddress = ipAddress
 
 		// Content
-		hh.Text = requestData.Text
-		hh.SortNumber = requestData.SortNumber
+		// hh.Text = requestData.Text
+		// hh.SortNumber = requestData.SortNumber
 
 		if err := impl.ExecutableStorer.UpdateByID(sessCtx, hh); err != nil {
 			impl.Logger.Error("executable update by id error", slog.Any("error", err))

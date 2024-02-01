@@ -11,6 +11,7 @@ import (
 	"github.com/bartmika/databoutique-backend/internal/adapter/templatedemailer"
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
 	program_s "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
+	tenant_s "github.com/bartmika/databoutique-backend/internal/app/tenant/datastore"
 	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	uploadfile_ds "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	user_s "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
@@ -40,6 +41,7 @@ type ExecutableControllerImpl struct {
 	Password              password.Provider
 	Kmutex                kmutex.Provider
 	DbClient              *mongo.Client
+	TenantStorer          tenant_s.TenantStorer
 	UserStorer            user_s.UserStorer
 	UploadDirectoryStorer uploaddirectory_s.UploadDirectoryStorer
 	UploadFileStorer      uploadfile_ds.UploadFileStorer
@@ -57,6 +59,7 @@ func NewController(
 	kmux kmutex.Provider,
 	temailer templatedemailer.TemplatedEmailer,
 	client *mongo.Client,
+	t_storer tenant_s.TenantStorer,
 	usr_storer user_s.UserStorer,
 	uploaddirectory_s uploaddirectory_s.UploadDirectoryStorer,
 	uploadfile_storer uploadfile_ds.UploadFileStorer,
@@ -72,6 +75,7 @@ func NewController(
 		Kmutex:                kmux,
 		TemplatedEmailer:      temailer,
 		DbClient:              client,
+		TenantStorer:          t_storer,
 		UserStorer:            usr_storer,
 		UploadDirectoryStorer: uploaddirectory_s,
 		UploadFileStorer:      uploadfile_storer,

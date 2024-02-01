@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -15,21 +16,26 @@ import (
 )
 
 type ExecutableCreateRequestIDO struct {
-	Text           string `bson:"text" json:"text"`
-	SortNumber     int8   `bson:"sort_number" json:"sort_number"`
-	IsForAssociate bool   `bson:"is_for_associate" json:"is_for_associate"`
-	IsForCustomer  bool   `bson:"is_for_customer" json:"is_for_customer"`
-	IsForStaff     bool   `bson:"is_for_staff" json:"is_for_staff"`
+	ProgramID          primitive.ObjectID   `bson:"program_id" json:"program_id"`
+	Question           string               `bson:"question" json:"question"`
+	UserID             primitive.ObjectID   `bson:"user_id" json:"user_id"`
+	UploadDirectoryIDs []primitive.ObjectID `bson:"upload_directory_ids" json:"upload_directory_ids"`
 }
 
 func (impl *ExecutableControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ExecutableCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Text == "" {
-		e["text"] = "missing value"
+	if dirtyData.ProgramID.IsZero() {
+		e["program_id"] = "missing value"
 	}
-	if dirtyData.SortNumber == 0 {
-		e["sort_number"] = "missing value"
+	if dirtyData.Question == "" {
+		e["question"] = "missing value"
+	}
+	if dirtyData.UserID.IsZero() {
+		e["user_id"] = "missing value"
+	}
+	if len(dirtyData.UploadDirectoryIDs) == 0 {
+		e["upload_directory_ids"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -58,8 +64,8 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 	// 4. Apply the PID to the record.
 	// 5. Unlock this `Create` function to be usable again by other calls after
 	//    the function successfully submits the record into our system.
-	impl.Kmutex.Lockf("create-how-hear-about-us-item-by-tenant-%s", tid.Hex())
-	defer impl.Kmutex.Unlockf("create-how-hear-about-us-item-by-tenant-%s", tid.Hex())
+	impl.Kmutex.Lockf("create-program-by-tenant-%s", tid.Hex())
+	defer impl.Kmutex.Unlockf("create-program-by-tenant-%s", tid.Hex())
 
 	//
 	// Perform our validation and return validation error on any issues detected.
@@ -93,27 +99,69 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		hh := &executable_s.Executable{}
+		////
+		//// Get related data.
+		////
+
+		u, err := impl.UserStorer.GetByID(sessCtx, requestData.UserID)
+		if err != nil {
+			impl.Logger.Error("failed getting user",
+				slog.Any("error", err))
+			return nil, err
+		}
+		if u == nil {
+			err := fmt.Errorf("user does not exist for id: %v", requestData.UserID.Hex())
+			impl.Logger.Error("user does not exist", slog.Any("error", err))
+			return nil, err
+		}
+		p, err := impl.ProgramStorer.GetByID(sessCtx, requestData.ProgramID)
+		if err != nil {
+			impl.Logger.Error("failed getting program",
+				slog.Any("error", err))
+			return nil, err
+		}
+		if p == nil {
+			err := fmt.Errorf("program does not exist for id: %v", requestData.ProgramID.Hex())
+			impl.Logger.Error("program does not exist", slog.Any("error", err))
+			return nil, err
+		}
+
+		//TODO: Get folder and files.
+
+		////
+		//// Create record.
+		////
+
+		exec := &executable_s.Executable{}
 
 		// Add defaults.
-		hh.TenantID = tid
-		hh.ID = primitive.NewObjectID()
-		hh.CreatedAt = time.Now()
-		hh.CreatedByUserID = userID
-		hh.CreatedByUserName = userName
-		hh.CreatedFromIPAddress = ipAddress
-		hh.ModifiedAt = time.Now()
-		hh.ModifiedByUserID = userID
-		hh.ModifiedByUserName = userName
-		hh.ModifiedFromIPAddress = ipAddress
+		exec.TenantID = tid
+		exec.ID = primitive.NewObjectID()
+		exec.CreatedAt = time.Now()
+		exec.CreatedByUserID = userID
+		exec.CreatedByUserName = userName
+		exec.CreatedFromIPAddress = ipAddress
+		exec.ModifiedAt = time.Now()
+		exec.ModifiedByUserID = userID
+		exec.ModifiedByUserName = userName
+		exec.ModifiedFromIPAddress = ipAddress
 
 		// Add base.
-		hh.Text = requestData.Text
-		hh.SortNumber = requestData.SortNumber
-		hh.Status = executable_s.ExecutableStatusActive
+		exec.ProgramID = p.ID
+		exec.ProgramName = p.Name
+		exec.Question = requestData.Question
+		exec.Status = executable_s.ExecutableStatusProcessing
+		exec.UploadDirectories = make([]*executable_s.UploadFolderOption, 0)
+		exec.OpenAIAssistantID = ""
+		exec.UserID = u.ID
+		exec.UserName = u.Name
+		exec.UserLexicalName = u.LexicalName
+
+		// Add related.
+		//TODO: Impl.
 
 		// Save to our database.
-		if err := impl.ExecutableStorer.Create(sessCtx, hh); err != nil {
+		if err := impl.ExecutableStorer.Create(sessCtx, exec); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
@@ -122,7 +170,7 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		//// Exit our transaction successfully.
 		////
 
-		return hh, nil
+		return exec, nil
 	}
 
 	// Start a transaction
@@ -133,5 +181,20 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		return nil, err
 	}
 
-	return result.(*executable_s.Executable), nil
+	// Convert from MongoDB transaction format into our data format.
+	exec := result.(*executable_s.Executable)
+
+	////
+	//// Execute in background calling OpenAI API.
+	////
+
+	// Submit the following into the background of this web-application.
+	// This function will run independently of this function call.
+	go func(ex *executable_s.Executable) {
+		if err := impl.CreateExecutableInBackgroundForOpenAI(ex); err != nil {
+			impl.Logger.Error("failed polling openai", slog.Any("error", err))
+		}
+	}(exec)
+
+	return exec, nil
 }

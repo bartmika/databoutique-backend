@@ -33,8 +33,8 @@ type ExecutablePaginationListFilter struct {
 // the associate records.
 type ExecutablePaginationListResult struct {
 	Results     []*Executable `json:"results"`
-	NextCursor  string             `json:"next_cursor"`
-	HasNextPage bool               `json:"has_next_page"`
+	NextCursor  string        `json:"next_cursor"`
+	HasNextPage bool          `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or
@@ -49,14 +49,14 @@ func (impl ExecutableStorerImpl) newPaginationFilter(f *ExecutablePaginationList
 
 		// STEP 2: Pick the specific cursor to build or else error.
 		switch f.SortField {
-		case "text":
-			return impl.newPaginationFilterBasedOnString(f, string(decodedCursor))
-		case "sort_number":
-			return impl.newPaginationFilterBasedOnInt8(f, string(decodedCursor))
-		case "created_at":
+		// case "text":
+		// 	return impl.newPaginationFilterBasedOnString(f, string(decodedCursor))
+		// case "sort_number":
+		// 	return impl.newPaginationFilterBasedOnInt8(f, string(decodedCursor))
+		case "created_at", "modified_at":
 			return impl.newPaginationFilterBasedOnTimestamp(f, string(decodedCursor))
 		default:
-			return nil, fmt.Errorf("unsupported sort field for `%v`, only supported fields are `name`, `sort_number` and `created_at`", f.SortField)
+			return nil, fmt.Errorf("unsupported sort field for `%v`, only supported fields are `name`, `created_at` and `modified_at`", f.SortField)
 		}
 	}
 	return bson.M{}, nil
@@ -206,18 +206,22 @@ func (impl ExecutableStorerImpl) newPaginatorNextCursor(f *ExecutablePaginationL
 	var nextCursor string
 
 	switch f.SortField {
-	case "Text":
-		nextCursor = fmt.Sprintf("%v|%v", lastDatum.Text, lastDatum.ID.Hex())
-		break
-	case "sort_number":
-		nextCursor = fmt.Sprintf("%v|%v", lastDatum.SortNumber, lastDatum.ID.Hex())
-		break
+	// case "Text":
+	// 	nextCursor = fmt.Sprintf("%v|%v", lastDatum.Text, lastDatum.ID.Hex())
+	// 	break
+	// case "sort_number":
+	// 	nextCursor = fmt.Sprintf("%v|%v", lastDatum.SortNumber, lastDatum.ID.Hex())
+	// 	break
 	case "created_at":
 		timestamp := lastDatum.CreatedAt.UnixMilli()
 		nextCursor = fmt.Sprintf("%v|%v", timestamp, lastDatum.ID.Hex())
 		break
+	case "modified_at":
+		timestamp := lastDatum.ModifiedAt.UnixMilli()
+		nextCursor = fmt.Sprintf("%v|%v", timestamp, lastDatum.ID.Hex())
+		break
 	default:
-		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `text` and `created_at`", f.SortField)
+		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `created_at` and `modified_at`", f.SortField)
 	}
 
 	// Encode to base64 without the `=` symbol that would corrupt when we

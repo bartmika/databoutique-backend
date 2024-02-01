@@ -14,25 +14,71 @@ import (
 )
 
 const (
-	ExecutableStatusActive   = 1
-	ExecutableStatusArchived = 2
+	ExecutableStatusActive     = 1
+	ExecutableStatusProcessing = 2
+	ExecutableStatusArchived   = 3
 )
 
 type Executable struct {
-	ID                    primitive.ObjectID `bson:"_id" json:"id"`
-	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	Text                  string             `bson:"text" json:"text"`
-	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
-	Status                int8               `bson:"status" json:"status"`
-	PublicID              uint64             `bson:"public_id" json:"public_id"`
-	CreatedAt             time.Time          `bson:"created_at" json:"created_at"`
-	CreatedByUserID       primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id,omitempty"`
-	CreatedByUserName     string             `bson:"created_by_user_name" json:"created_by_user_name"`
-	CreatedFromIPAddress  string             `bson:"created_from_ip_address" json:"created_from_ip_address"`
-	ModifiedAt            time.Time          `bson:"modified_at" json:"modified_at"`
-	ModifiedByUserID      primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id,omitempty"`
-	ModifiedByUserName    string             `bson:"modified_by_user_name" json:"modified_by_user_name"`
-	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	ID                      primitive.ObjectID    `bson:"_id" json:"id"`
+	TenantID                primitive.ObjectID    `bson:"tenant_id" json:"tenant_id"`
+	ProgramID               primitive.ObjectID    `bson:"program_id" json:"program_id"`
+	ProgramName             string                `bson:"program_name" json:"program_name"`
+	Question                string                `bson:"question" json:"question"`
+	Status                  int8                  `bson:"status" json:"status"`
+	PublicID                uint64                `bson:"public_id" json:"public_id"`
+	CreatedAt               time.Time             `bson:"created_at" json:"created_at"`
+	CreatedByUserID         primitive.ObjectID    `bson:"created_by_user_id" json:"created_by_user_id,omitempty"`
+	CreatedByUserName       string                `bson:"created_by_user_name" json:"created_by_user_name"`
+	CreatedFromIPAddress    string                `bson:"created_from_ip_address" json:"created_from_ip_address"`
+	ModifiedAt              time.Time             `bson:"modified_at" json:"modified_at"`
+	ModifiedByUserID        primitive.ObjectID    `bson:"modified_by_user_id" json:"modified_by_user_id,omitempty"`
+	ModifiedByUserName      string                `bson:"modified_by_user_name" json:"modified_by_user_name"`
+	ModifiedFromIPAddress   string                `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	UploadDirectories       []*UploadFolderOption `bson:"assistant_files" json:"assistant_files,omitempty"`
+	OpenAIAssistantID       string                `bson:"openai_assistant_id" json:"openai_assistant_id"` // https://platform.openai.com/docs/assistants/tools/supported-files
+	OpenAIAssistantThreadID string                `bson:"openai_assistant_thread_id" json:"openai_assistant_thread_id"`
+	UserID                  primitive.ObjectID    `bson:"user_id" json:"user_id"`
+	UserName                string                `bson:"user_name" json:"user_name"`
+	UserLexicalName         string                `bson:"user_lexical_name" json:"user_lexical_name"`
+	Messages                []*Message            `bson:"messages" json:"messages,omitempty"`
+}
+
+type UploadFolderOption struct {
+	ID          primitive.ObjectID  `bson:"_id" json:"id"`
+	Name        string              `bson:"name" json:"name"`
+	Description string              `bson:"description" json:"description"`
+	UploadFiles []*UploadFileOption `bson:"upload_files" json:"upload_files,omitempty"`
+}
+
+type UploadFileOption struct {
+	ID          primitive.ObjectID `bson:"_id" json:"id"`
+	Name        string             `bson:"name" json:"name"`
+	Description string             `bson:"description" json:"description"`
+	FileID      string             `bson:"file_id" json:"file_id"` // https://platform.openai.com/docs/assistants/tools/supported-files
+	Status      int8               `bson:"status" json:"status"`
+}
+
+type Message struct {
+	ID              primitive.ObjectID `bson:"_id" json:"id"`
+	Content         string             `bson:"content" json:"content"`
+	OpenAIMessageID string             `bson:"openai_message_id" json:"openai_message_id"`
+	CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
+}
+
+// GetFileIDs function will iterate through all the assistant files
+// and return the OpenAI file ID values.
+func (a *Executable) GetFileIDs() []string {
+	if a.UploadDirectories == nil {
+		return nil
+	}
+	ids := []string{}
+	for _, ud := range a.UploadDirectories {
+		for _, uf := range ud.UploadFiles {
+			ids = append(ids, uf.FileID)
+		}
+	}
+	return ids
 }
 
 type ExecutableListResult struct {
@@ -77,7 +123,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Ex
 		{Keys: bson.D{{Key: "public_id", Value: -1}}},
 		{Keys: bson.D{{Key: "status", Value: 1}}},
 		{Keys: bson.D{
-			{"text", "text"},
+			{"program_name", "text"},
 		}},
 	})
 	if err != nil {
