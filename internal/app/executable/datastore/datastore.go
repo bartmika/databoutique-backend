@@ -35,7 +35,7 @@ type Executable struct {
 	ModifiedByUserID        primitive.ObjectID    `bson:"modified_by_user_id" json:"modified_by_user_id,omitempty"`
 	ModifiedByUserName      string                `bson:"modified_by_user_name" json:"modified_by_user_name"`
 	ModifiedFromIPAddress   string                `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
-	UploadDirectories       []*UploadFolderOption `bson:"assistant_files" json:"assistant_files,omitempty"`
+	Directories             []*UploadFolderOption `bson:"directories" json:"directories,omitempty"`
 	OpenAIAssistantID       string                `bson:"openai_assistant_id" json:"openai_assistant_id"` // https://platform.openai.com/docs/assistants/tools/supported-files
 	OpenAIAssistantThreadID string                `bson:"openai_assistant_thread_id" json:"openai_assistant_thread_id"`
 	UserID                  primitive.ObjectID    `bson:"user_id" json:"user_id"`
@@ -48,7 +48,8 @@ type UploadFolderOption struct {
 	ID          primitive.ObjectID  `bson:"_id" json:"id"`
 	Name        string              `bson:"name" json:"name"`
 	Description string              `bson:"description" json:"description"`
-	UploadFiles []*UploadFileOption `bson:"upload_files" json:"upload_files,omitempty"`
+	Status      int8                `bson:"status" json:"status"`
+	Files       []*UploadFileOption `bson:"files" json:"files,omitempty"`
 }
 
 type UploadFileOption struct {
@@ -64,30 +65,32 @@ type Message struct {
 	Content         string             `bson:"content" json:"content"`
 	OpenAIMessageID string             `bson:"openai_message_id" json:"openai_message_id"`
 	CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
+	Status          int8               `bson:"status" json:"status"`
+	FromExecutable  bool               `bson:"from_executable" json:"from_executable"`
 }
 
 // GetOpenAIFileIDs function will iterate through all the assistant files
 // and return the OpenAI file ID values.
 func (a *Executable) GetOpenAIFileIDs() []string {
-	if a.UploadDirectories == nil {
+	if a.Directories == nil {
 		return nil
 	}
 	ids := []string{}
-	for _, ud := range a.UploadDirectories {
-		for _, uf := range ud.UploadFiles {
-			ids = append(ids, uf.OpenAIFileID)
+	for _, dir := range a.Directories {
+		for _, file := range dir.Files {
+			ids = append(ids, file.OpenAIFileID)
 		}
 	}
 	return ids
 }
 
 func (a *Executable) GetUploadDirectoryIDs() []primitive.ObjectID {
-	if a.UploadDirectories == nil {
+	if a.Directories == nil {
 		return nil
 	}
 	ids := []primitive.ObjectID{}
-	for _, ud := range a.UploadDirectories {
-		ids = append(ids, ud.ID)
+	for _, dir := range a.Directories {
+		ids = append(ids, dir.ID)
 	}
 	return ids
 }

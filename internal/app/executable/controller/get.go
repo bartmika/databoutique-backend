@@ -3,17 +3,24 @@ package controller
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log/slog"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
 )
 
-func (c *ExecutableControllerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*executable_s.Executable, error) {
+func (impl *ExecutableControllerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*executable_s.Executable, error) {
+	// Keep data consistent.
+	impl.Kmutex.Lockf("executable_%s", id.Hex())
+	defer impl.Kmutex.Unlockf("executable_%s", id.Hex())
+
 	// Retrieve from our database the record for the specific id.
-	m, err := c.ExecutableStorer.GetByID(ctx, id)
+	m, err := impl.ExecutableStorer.GetByID(ctx, id)
 	if err != nil {
-		c.Logger.Error("database get by id error", slog.Any("error", err))
+		impl.Logger.Error("failed getting executable",
+			slog.String("id", id.Hex()),
+			slog.Any("error", err))
 		return nil, err
 	}
 	return m, err

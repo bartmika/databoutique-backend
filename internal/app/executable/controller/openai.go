@@ -10,6 +10,7 @@ import (
 
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
 	"github.com/sashabaranov/go-openai"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -164,7 +165,7 @@ func (impl *ExecutableControllerImpl) CreateExecutableInBackgroundForOpenAI(exec
 				slog.Any("error", err))
 			return nil, err
 		}
-		impl.Logger.Debug("submitted create run to openai")
+		impl.Logger.Debug("openai running message processing...")
 
 		// --- Poll in foreground for completion by openai --- //
 
@@ -182,13 +183,14 @@ func (impl *ExecutableControllerImpl) CreateExecutableInBackgroundForOpenAI(exec
 				return nil, err
 			}
 		}
-		impl.Logger.Debug("openai finished running")
+		impl.Logger.Debug("openai finished running for message processing")
 
 		// --- Get message list --- //
 
 		// The following code will fetch the latest messages for the particular
 		// `thread_id` and return all the messages so far. Then extract most
 		// recent message and save it into our system.
+		impl.Logger.Debug("fetching recent messages from openai...")
 
 		msgs, err := client.ListMessage(context.Background(), exec.OpenAIAssistantThreadID, nil, nil, nil, nil)
 		if err != nil {
@@ -196,19 +198,20 @@ func (impl *ExecutableControllerImpl) CreateExecutableInBackgroundForOpenAI(exec
 				slog.Any("error", err))
 			return nil, err
 		}
-		impl.Logger.Debug("fetched messages from openai")
+		impl.Logger.Debug("received recent messages from openai")
 		msg := msgs.Messages[0]
 
 		// Create the message.
 		message := &executable_s.Message{}
+		message.ID = primitive.NewObjectID()
 		message.OpenAIMessageID = msg.ID
 		message.Content = msg.Content[0].Text.Value
 		message.CreatedAt = time.Now()
+		message.Status = executable_s.ExecutableStatusActive
+		message.FromExecutable = true
 
 		// Save the message to the executable.
 		exec.Messages = append(exec.Messages, message)
-
-		impl.Logger.Debug("updated message")
 
 		////
 		//// Update database record.
@@ -224,6 +227,8 @@ func (impl *ExecutableControllerImpl) CreateExecutableInBackgroundForOpenAI(exec
 				slog.Any("error", err))
 			return nil, err
 		}
+
+		impl.Logger.Debug("updated executable with latest message")
 
 		////
 		//// Exit our transaction successfully.

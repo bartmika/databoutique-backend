@@ -63,6 +63,9 @@ type UploadFileStorer interface {
 	ListByFilter(ctx context.Context, m *UploadFilePaginationListFilter) (*UploadFilePaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *UploadFilePaginationListFilter) ([]*UploadFileAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	GetOpenAIFileIDsInUploadDirectoryIDs(ctx context.Context, uploadDirectoryIDs []primitive.ObjectID) ([]string, error)
+	ListByUploadDirectoryID(ctx context.Context, uploadDirectoryID primitive.ObjectID) (*UploadFilePaginationListResult, error)
+	ListByUploadDirectoryIDs(ctx context.Context, uploadDirectoryIDs []primitive.ObjectID) (*UploadFilePaginationListResult, error)
 	// //TODO: Add more...
 }
 

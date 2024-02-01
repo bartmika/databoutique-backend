@@ -24,3 +24,30 @@ func (impl UploadFileStorerImpl) GetByID(ctx context.Context, id primitive.Objec
 	}
 	return &result, nil
 }
+
+func (impl UploadFileStorerImpl) GetOpenAIFileIDsInUploadDirectoryIDs(ctx context.Context, uploadDirectoryIDs []primitive.ObjectID) ([]string, error) {
+	filter := bson.M{
+		"upload_directory_id": bson.M{"$in": uploadDirectoryIDs},
+	}
+
+	cursor, err := impl.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var openAIFileIDs []string
+	for cursor.Next(ctx) {
+		var uploadFile UploadFile
+		if err := cursor.Decode(&uploadFile); err != nil {
+			return nil, err
+		}
+		openAIFileIDs = append(openAIFileIDs, uploadFile.OpenAIFileID)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return openAIFileIDs, nil
+}

@@ -64,6 +64,10 @@ func (impl *ExecutableControllerImpl) UpdateByID(ctx context.Context, requestDat
 		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission to create a client")
 	}
 
+	// Keep data consistent.
+	impl.Kmutex.Lockf("executable_%s", requestData.ID.Hex())
+	defer impl.Kmutex.Unlockf("executable_%s", requestData.ID.Hex())
+
 	////
 	//// Start the transaction.
 	////

@@ -10,16 +10,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
-	u_s "github.com/bartmika/databoutique-backend/internal/app/user/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
 
 type ExecutableCreateRequestIDO struct {
 	ProgramID          primitive.ObjectID   `bson:"program_id" json:"program_id"`
-	Question           string               `bson:"question" json:"question"`
 	UserID             primitive.ObjectID   `bson:"user_id" json:"user_id"`
 	UploadDirectoryIDs []primitive.ObjectID `bson:"upload_directory_ids" json:"upload_directory_ids"`
+	Question           string               `bson:"question" json:"question"`
 }
 
 func (impl *ExecutableControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ExecutableCreateRequestIDO) error {
@@ -28,16 +27,15 @@ func (impl *ExecutableControllerImpl) validateCreateRequest(ctx context.Context,
 	if dirtyData.ProgramID.IsZero() {
 		e["program_id"] = "missing value"
 	}
-	if dirtyData.Question == "" {
-		e["question"] = "missing value"
-	}
 	if dirtyData.UserID.IsZero() {
 		e["user_id"] = "missing value"
 	}
 	if len(dirtyData.UploadDirectoryIDs) == 0 {
 		e["upload_directory_ids"] = "missing value"
 	}
-
+	if dirtyData.Question == "" {
+		e["question"] = "missing value"
+	}
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
 	}
@@ -50,7 +48,7 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 	//
 
 	tid, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
-	role, _ := ctx.Value(constants.SessionUserRole).(int8)
+	// role, _ := ctx.Value(constants.SessionUserRole).(int8)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := ctx.Value(constants.SessionUserName).(string)
 	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
@@ -76,13 +74,13 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		return nil, err
 	}
 
-	switch role {
-	case u_s.UserRoleExecutive, u_s.UserRoleManagement, u_s.UserRoleFrontlineStaff:
-		break
-	default:
-		impl.Logger.Error("you do not have permission to create a client")
-		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission to create a client")
-	}
+	// switch role {
+	// case u_s.UserRoleExecutive, u_s.UserRoleManagement, u_s.UserRoleFrontlineStaff:
+	// 	break
+	// default:
+	// 	impl.Logger.Error("you do not have permission to create a client")
+	// 	return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission to create a client")
+	// }
 
 	////
 	//// Start the transaction.
@@ -126,8 +124,16 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 			return nil, err
 		}
 
-		//TODO: Get folder and files.
-		// dir, err := impl.ListByIDs(sessCtx, )
+		uploadFolders, err := impl.UploadDirectoryStorer.ListByIDs(sessCtx, requestData.UploadDirectoryIDs)
+		if err != nil {
+			impl.Logger.Error("failed getting folders",
+				slog.Any("upload_directory_ids", requestData.UploadDirectoryIDs),
+				slog.Any("error", err))
+			return nil, err
+		}
+		if len(uploadFolders.Results) > 0 {
+			//TODO: Implement security if user is customer to not look in folders that don't belong to them.
+		}
 
 		////
 		//// Create record.
@@ -152,18 +158,60 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		exec.ProgramName = p.Name
 		exec.Question = requestData.Question
 		exec.Status = executable_s.ExecutableStatusProcessing
-		exec.UploadDirectories = make([]*executable_s.UploadFolderOption, 0)
 		exec.OpenAIAssistantID = ""
 		exec.UserID = u.ID
 		exec.UserName = u.Name
 		exec.UserLexicalName = u.LexicalName
 
 		// Add related.
-		//TODO: Impl.
+		// 1. Iterate through all the selected folders and make a copy of them
+		// 2. Iterate through all the files within the selected folders and
+		//    make a copy of them.
+		// 3. Save the copy to our executable.
+		// 4. Add initial question into our messages list.
+		exec.Directories = make([]*executable_s.UploadFolderOption, 0)
+		for _, folder := range uploadFolders.Results {
+			dir := &executable_s.UploadFolderOption{
+				ID:          folder.ID,
+				Name:        folder.Name,
+				Description: folder.Description,
+				Status:      folder.Status,
+				Files:       make([]*executable_s.UploadFileOption, 0),
+			}
+			dirfiles, err := impl.UploadFileStorer.ListByUploadDirectoryID(ctx, folder.ID)
+			if err != nil {
+				impl.Logger.Error("failed getting files within folder",
+					slog.Any("upload_directory_id", folder.ID),
+					slog.Any("error", err))
+				return nil, err
+			}
+			for _, dirfile := range dirfiles.Results {
+				file := &executable_s.UploadFileOption{
+					ID:           dirfile.ID,
+					Name:         dirfile.Name,
+					Description:  dirfile.Description,
+					OpenAIFileID: dirfile.OpenAIFileID,
+					Status:       dirfile.Status,
+				}
+				dir.Files = append(dir.Files, file)
+			}
+			exec.Directories = append(exec.Directories, dir)
+		}
+
+		msg := &executable_s.Message{
+			ID:              primitive.NewObjectID(),
+			Content:         requestData.Question,
+			OpenAIMessageID: "",
+			CreatedAt:       time.Now(),
+			Status:          executable_s.ExecutableStatusActive,
+			FromExecutable:  false,
+		}
+		exec.Messages = append(exec.Messages, msg)
 
 		// Save to our database.
 		if err := impl.ExecutableStorer.Create(sessCtx, exec); err != nil {
-			impl.Logger.Error("database create error", slog.Any("error", err))
+			impl.Logger.Error("database create error",
+				slog.Any("error", err))
 			return nil, err
 		}
 

@@ -60,7 +60,7 @@ type UploadDirectoryStorer interface {
 	ListByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) (*UploadDirectoryPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *UploadDirectoryPaginationListFilter) ([]*UploadDirectoryAsSelectOption, error)
 	ListByTenantID(ctx context.Context, tid primitive.ObjectID) (*UploadDirectoryPaginationListResult, error)
-	ListByIDs(ctx context.Context, ids []*primitive.ObjectID) (*UploadDirectoryPaginationListResult, error)
+	ListByIDs(ctx context.Context, ids []primitive.ObjectID) (*UploadDirectoryPaginationListResult, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 }
 
