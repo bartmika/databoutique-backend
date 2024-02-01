@@ -15,10 +15,11 @@ import (
 )
 
 type ProgramCreateRequestIDO struct {
-	Name         string `bson:"name" json:"name"`
-	Description  string `bson:"description" json:"description"`
-	Instructions string `bson:"instructions" json:"instructions"`
-	Model        string `bson:"model" json:"model"`
+	Name             string `bson:"name" json:"name"`
+	Description      string `bson:"description" json:"description"`
+	Instructions     string `bson:"instructions" json:"instructions"`
+	Model            string `bson:"model" json:"model"`
+	BusinessFunction int8   `bson:"business_function" json:"business_function"`
 }
 
 func (impl *ProgramControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ProgramCreateRequestIDO) error {
@@ -35,6 +36,9 @@ func (impl *ProgramControllerImpl) validateCreateRequest(ctx context.Context, di
 	}
 	if dirtyData.Model == "" {
 		e["model"] = "missing value"
+	}
+	if dirtyData.BusinessFunction == 0 {
+		e["business_function"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -98,12 +102,17 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
+		////
+		//// Create the record.
+		////
+
 		prog := &program_s.Program{
-			Name:         requestData.Name,
-			Description:  requestData.Description,
-			Instructions: requestData.Instructions,
-			Model:        requestData.Model,
-			Status:       program_s.ProgramStatusActive,
+			Name:             requestData.Name,
+			Description:      requestData.Description,
+			Instructions:     requestData.Instructions,
+			Model:            requestData.Model,
+			Status:           program_s.ProgramStatusActive,
+			BusinessFunction: requestData.BusinessFunction,
 		}
 
 		// Add defaults.
@@ -123,6 +132,12 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
+
+		////
+		//// OpenAI
+		////
+
+		//TODO
 
 		////
 		//// Exit our transaction successfully.

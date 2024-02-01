@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	ProgramStatusActive   = 1
-	ProgramStatusArchived = 2
+	ProgramStatusActive                           = 1
+	ProgramStatusArchived                         = 2
+	ProgramBusinessFunctionCustomerDocumentReview = 1
+	ProgramBusinessFunctionAdmintorDocumentReview = 2
 )
 
 type Program struct {
@@ -30,7 +32,9 @@ type Program struct {
 	// Variable controls how this assistant is running in-app.
 	Status int8 `bson:"status" json:"status"`
 	// The unique identifier used in-app powered by MongoDB.
-	SortNumber            int8               `bson:"sort_number" json:"sort_number"`
+	SortNumber int8 `bson:"sort_number" json:"sort_number"`
+	// The type of program being employed.
+	BusinessFunction      int8               `bson:"business_function" json:"business_function"`
 	ID                    primitive.ObjectID `bson:"_id" json:"id"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 	PublicID              uint64             `bson:"public_id" json:"public_id"`

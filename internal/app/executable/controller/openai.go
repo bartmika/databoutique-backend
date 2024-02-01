@@ -68,7 +68,7 @@ func (impl *ExecutableControllerImpl) CreateExecutableInBackgroundForOpenAI(exec
 		impl.Logger.Debug("openai initialized")
 
 		// Get all the files which we will pre-train the LLM.
-		fileIDs := exec.GetFileIDs()
+		fileIDs := exec.GetOpenAIFileIDs()
 
 		////
 		//// Create assistant.

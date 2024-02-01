@@ -52,11 +52,11 @@ type UploadFolderOption struct {
 }
 
 type UploadFileOption struct {
-	ID          primitive.ObjectID `bson:"_id" json:"id"`
-	Name        string             `bson:"name" json:"name"`
-	Description string             `bson:"description" json:"description"`
-	FileID      string             `bson:"file_id" json:"file_id"` // https://platform.openai.com/docs/assistants/tools/supported-files
-	Status      int8               `bson:"status" json:"status"`
+	ID           primitive.ObjectID `bson:"_id" json:"id"`
+	Name         string             `bson:"name" json:"name"`
+	Description  string             `bson:"description" json:"description"`
+	OpenAIFileID string             `bson:"openai_file_id" json:"openai_file_id"` // https://platform.openai.com/docs/assistants/tools/supported-files
+	Status       int8               `bson:"status" json:"status"`
 }
 
 type Message struct {
@@ -66,17 +66,28 @@ type Message struct {
 	CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
 }
 
-// GetFileIDs function will iterate through all the assistant files
+// GetOpenAIFileIDs function will iterate through all the assistant files
 // and return the OpenAI file ID values.
-func (a *Executable) GetFileIDs() []string {
+func (a *Executable) GetOpenAIFileIDs() []string {
 	if a.UploadDirectories == nil {
 		return nil
 	}
 	ids := []string{}
 	for _, ud := range a.UploadDirectories {
 		for _, uf := range ud.UploadFiles {
-			ids = append(ids, uf.FileID)
+			ids = append(ids, uf.OpenAIFileID)
 		}
+	}
+	return ids
+}
+
+func (a *Executable) GetUploadDirectoryIDs() []primitive.ObjectID {
+	if a.UploadDirectories == nil {
+		return nil
+	}
+	ids := []primitive.ObjectID{}
+	for _, ud := range a.UploadDirectories {
+		ids = append(ids, ud.ID)
 	}
 	return ids
 }

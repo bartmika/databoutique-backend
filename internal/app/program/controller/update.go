@@ -16,11 +16,12 @@ import (
 )
 
 type ProgramUpdateRequestIDO struct {
-	ID           primitive.ObjectID `bson:"id" json:"id"`
-	Name         string             `bson:"name" json:"name"`
-	Instructions string             `bson:"instructions" json:"instructions"`
-	Model        string             `bson:"model" json:"model"`
-	Description  string             `bson:"description" json:"description"`
+	ID               primitive.ObjectID `bson:"id" json:"id"`
+	Name             string             `bson:"name" json:"name"`
+	Instructions     string             `bson:"instructions" json:"instructions"`
+	Model            string             `bson:"model" json:"model"`
+	Description      string             `bson:"description" json:"description"`
+	BusinessFunction int8               `bson:"business_function" json:"business_function"`
 }
 
 func (impl *ProgramControllerImpl) validateUpdateRequest(ctx context.Context, dirtyData *ProgramUpdateRequestIDO) error {
@@ -40,6 +41,9 @@ func (impl *ProgramControllerImpl) validateUpdateRequest(ctx context.Context, di
 	}
 	if dirtyData.Model == "" {
 		e["model"] = "missing value"
+	}
+	if dirtyData.BusinessFunction == 0 {
+		e["business_function"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -121,6 +125,7 @@ func (impl *ProgramControllerImpl) UpdateByID(ctx context.Context, requestData *
 		prog.Description = requestData.Description
 		prog.Instructions = requestData.Instructions
 		prog.Model = requestData.Model
+		prog.BusinessFunction = requestData.BusinessFunction
 
 		if err := impl.ProgramStorer.UpdateByID(sessCtx, prog); err != nil {
 			impl.Logger.Error("program update by id error", slog.Any("error", err))
