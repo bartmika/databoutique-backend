@@ -263,6 +263,8 @@ func (port *httpTransportInputPort) HandleRequests(w http.ResponseWriter, r *htt
 		port.Executable.DeleteByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "executables" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.Executable.ListAsSelectOptionByFilter(w, r)
+	case n == 5 && p[1] == "v1" && p[2] == "executables" && p[3] == "operations" && p[4] == "question-submission" && r.Method == http.MethodPost:
+		port.Executable.QuestionSubmissionOperation(w, r)
 
 	// --- ASSISTANT FILE --- //
 	case n == 3 && p[1] == "v1" && p[2] == "assistant-files" && r.Method == http.MethodGet:

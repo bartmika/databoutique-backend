@@ -240,8 +240,8 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 	// Submit the following into the background of this web-application.
 	// This function will run independently of this function call.
 	go func(ex *executable_s.Executable) {
-		if err := impl.CreateExecutableInBackgroundForOpenAI(ex); err != nil {
-			impl.Logger.Error("failed polling openai", slog.Any("error", err))
+		if err := impl.createExecutableInBackgroundForOpenAI(ex); err != nil {
+			impl.Logger.Error("failed submitting to openai", slog.Any("error", err))
 		}
 	}(exec)
 

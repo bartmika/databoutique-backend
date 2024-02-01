@@ -31,6 +31,7 @@ type ExecutableController interface {
 	PublicListAsSelectOptionByFilter(ctx context.Context, f *executable_s.ExecutablePaginationListFilter) ([]*executable_s.ExecutableAsSelectOption, error)
 	ArchiveByID(ctx context.Context, id primitive.ObjectID) (*executable_s.Executable, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	QuestionSubmissionOperation(ctx context.Context, requestData *QuestionSubmissionOperationRequestIDO) (*executable_s.Executable, error)
 }
 
 type ExecutableControllerImpl struct {
