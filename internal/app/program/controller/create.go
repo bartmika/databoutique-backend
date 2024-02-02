@@ -15,11 +15,12 @@ import (
 )
 
 type ProgramCreateRequestIDO struct {
-	Name             string `bson:"name" json:"name"`
-	Description      string `bson:"description" json:"description"`
-	Instructions     string `bson:"instructions" json:"instructions"`
-	Model            string `bson:"model" json:"model"`
-	BusinessFunction int8   `bson:"business_function" json:"business_function"`
+	Name               string               `bson:"name" json:"name"`
+	Description        string               `bson:"description" json:"description"`
+	Instructions       string               `bson:"instructions" json:"instructions"`
+	Model              string               `bson:"model" json:"model"`
+	BusinessFunction   int8                 `bson:"business_function" json:"business_function"`
+	UploadDirectoryIDs []primitive.ObjectID `bson:"upload_directory_ids" json:"upload_directory_ids"`
 }
 
 func (impl *ProgramControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *ProgramCreateRequestIDO) error {
@@ -39,6 +40,9 @@ func (impl *ProgramControllerImpl) validateCreateRequest(ctx context.Context, di
 	}
 	if dirtyData.BusinessFunction == 0 {
 		e["business_function"] = "missing value"
+	}
+	if len(dirtyData.UploadDirectoryIDs) == 0 && dirtyData.BusinessFunction == 2 {
+		e["upload_directory_ids"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -103,6 +107,18 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		////
+		//// Get related records.
+		////
+
+		uploadFolders, err := impl.UploadDirectoryStorer.ListByIDs(sessCtx, requestData.UploadDirectoryIDs)
+		if err != nil {
+			impl.Logger.Error("failed getting folders",
+				slog.Any("upload_directory_ids", requestData.UploadDirectoryIDs),
+				slog.Any("error", err))
+			return nil, err
+		}
+
+		////
 		//// Create the record.
 		////
 
@@ -127,17 +143,47 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 		prog.ModifiedByUserName = userName
 		prog.ModifiedFromIPAddress = ipAddress
 
+		// Add related.
+		if prog.BusinessFunction == program_s.ProgramBusinessFunctionAdmintorDocumentReview && len(uploadFolders.Results) > 0 {
+			// 1. Iterate through all the selected folders and make a copy of them
+			// 2. Iterate through all the files within the selected folders and
+			//    make a copy of them.
+			// 3. Save the copy to our program.
+			prog.Directories = make([]*program_s.UploadFolderOption, 0)
+			for _, folder := range uploadFolders.Results {
+				dir := &program_s.UploadFolderOption{
+					ID:          folder.ID,
+					Name:        folder.Name,
+					Description: folder.Description,
+					Status:      folder.Status,
+					Files:       make([]*program_s.UploadFileOption, 0),
+				}
+				dirfiles, err := impl.UploadFileStorer.ListByUploadDirectoryID(ctx, folder.ID)
+				if err != nil {
+					impl.Logger.Error("failed getting files within folder",
+						slog.Any("upload_directory_id", folder.ID),
+						slog.Any("error", err))
+					return nil, err
+				}
+				for _, dirfile := range dirfiles.Results {
+					file := &program_s.UploadFileOption{
+						ID:           dirfile.ID,
+						Name:         dirfile.Name,
+						Description:  dirfile.Description,
+						OpenAIFileID: dirfile.OpenAIFileID,
+						Status:       dirfile.Status,
+					}
+					dir.Files = append(dir.Files, file)
+				}
+				prog.Directories = append(prog.Directories, dir)
+			}
+		}
+
 		// Save to our database.
 		if err := impl.ProgramStorer.Create(sessCtx, prog); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
-
-		////
-		//// OpenAI
-		////
-
-		//TODO
 
 		////
 		//// Exit our transaction successfully.
@@ -154,5 +200,22 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 		return nil, err
 	}
 
-	return result.(*program_s.Program), nil
+	// Convert from MongoDB transaction format into our data format.
+	prog := result.(*program_s.Program)
+
+	////
+	//// Execute in background calling OpenAI API.
+	////
+
+	// Submit the following into the background of this web-application.
+	// This function will run independently of this function call.
+	go func(p *program_s.Program) {
+		if p.BusinessFunction == program_s.ProgramBusinessFunctionAdmintorDocumentReview {
+			if err := impl.createProgramInBackgroundForOpenAI(p); err != nil {
+				impl.Logger.Error("failed submitting to openai", slog.Any("error", err))
+			}
+		}
+	}(prog)
+
+	return prog, nil
 }

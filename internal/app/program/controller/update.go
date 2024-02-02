@@ -62,6 +62,9 @@ func (impl *ProgramControllerImpl) UpdateByID(ctx context.Context, requestData *
 		return nil, err
 	}
 
+	impl.Kmutex.Lockf("openai_program_%s", requestData.ID.Hex())
+	defer impl.Kmutex.Unlockf("openai_program_%s", requestData.ID.Hex())
+
 	// Get variables from our user authenticated session.
 	//
 

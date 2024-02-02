@@ -2,18 +2,21 @@ package controller
 
 import (
 	"context"
+	"log/slog"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log/slog"
 
 	program_s "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 )
 
-func (c *ProgramControllerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*program_s.Program, error) {
+func (impl *ProgramControllerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*program_s.Program, error) {
+	impl.Kmutex.Lockf("openai_program_%s", id.Hex())
+	defer impl.Kmutex.Unlockf("openai_program_%s", id.Hex())
+
 	// Retrieve from our database the record for the specific id.
-	m, err := c.ProgramStorer.GetByID(ctx, id)
+	m, err := impl.ProgramStorer.GetByID(ctx, id)
 	if err != nil {
-		c.Logger.Error("database get by id error", slog.Any("error", err))
+		impl.Logger.Error("database get by id error", slog.Any("error", err))
 		return nil, err
 	}
 	return m, err
