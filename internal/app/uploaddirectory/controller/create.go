@@ -41,6 +41,7 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 	// role, _ := ctx.Value(constants.SessionUserRole).(int8)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := ctx.Value(constants.SessionUserName).(string)
+	userLexicalName, _ := ctx.Value(constants.SessionUserLexicalName).(string)
 	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	// DEVELOPERS NOTE:
@@ -87,28 +88,31 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		hh := &uploaddirectory_s.UploadDirectory{}
+		ud := &uploaddirectory_s.UploadDirectory{}
 
 		// Add defaults.
-		hh.TenantID = tid
-		hh.ID = primitive.NewObjectID()
-		hh.CreatedAt = time.Now()
-		hh.CreatedByUserID = userID
-		hh.CreatedByUserName = userName
-		hh.CreatedFromIPAddress = ipAddress
-		hh.ModifiedAt = time.Now()
-		hh.ModifiedByUserID = userID
-		hh.ModifiedByUserName = userName
-		hh.ModifiedFromIPAddress = ipAddress
+		ud.TenantID = tid
+		ud.ID = primitive.NewObjectID()
+		ud.CreatedAt = time.Now()
+		ud.CreatedByUserID = userID
+		ud.CreatedByUserName = userName
+		ud.CreatedFromIPAddress = ipAddress
+		ud.ModifiedAt = time.Now()
+		ud.ModifiedByUserID = userID
+		ud.ModifiedByUserName = userName
+		ud.ModifiedFromIPAddress = ipAddress
+		ud.UserID = userID
+		ud.UserName = userName
+		ud.UserLexicalName = userLexicalName
 
 		// Add base.
-		hh.Name = requestData.Name
-		hh.Description = requestData.Description
-		hh.SortNumber = requestData.SortNumber
-		hh.Status = uploaddirectory_s.UploadDirectoryStatusActive
+		ud.Name = requestData.Name
+		ud.Description = requestData.Description
+		ud.SortNumber = requestData.SortNumber
+		ud.Status = uploaddirectory_s.UploadDirectoryStatusActive
 
 		// Save to our database.
-		if err := impl.UploadDirectoryStorer.Create(sessCtx, hh); err != nil {
+		if err := impl.UploadDirectoryStorer.Create(sessCtx, ud); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
@@ -117,7 +121,7 @@ func (impl *UploadDirectoryControllerImpl) Create(ctx context.Context, requestDa
 		//// Exit our transaction successfully.
 		////
 
-		return hh, nil
+		return ud, nil
 	}
 
 	// Start a transaction

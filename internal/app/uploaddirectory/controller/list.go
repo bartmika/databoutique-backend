@@ -7,17 +7,19 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	t_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 )
 
 func (c *UploadDirectoryControllerImpl) ListByFilter(ctx context.Context, f *t_s.UploadDirectoryPaginationListFilter) (*t_s.UploadDirectoryPaginationListResult, error) {
 	// // Extract from our session the following data.
 	tenantID := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
+	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 
 	// Apply filtering based on ownership and role.
 	f.TenantID = tenantID // Manditory
+	f.UserID = userID
 
 	c.Logger.Debug("listing using filter options:",
 		slog.Any("Cursor", f.Cursor),

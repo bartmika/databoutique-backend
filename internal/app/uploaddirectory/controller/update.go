@@ -52,6 +52,7 @@ func (impl *UploadDirectoryControllerImpl) UpdateByID(ctx context.Context, reque
 	role, _ := ctx.Value(constants.SessionUserRole).(int8)
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := ctx.Value(constants.SessionUserName).(string)
+	userLexicalName, _ := ctx.Value(constants.SessionUserLexicalName).(string)
 	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	switch role {
@@ -82,12 +83,12 @@ func (impl *UploadDirectoryControllerImpl) UpdateByID(ctx context.Context, reque
 		////
 
 		// Lookup the uploaddirectory in our database, else return a `400 Bad Request` error.
-		hh, err := impl.UploadDirectoryStorer.GetByID(sessCtx, requestData.ID)
+		ud, err := impl.UploadDirectoryStorer.GetByID(sessCtx, requestData.ID)
 		if err != nil {
 			impl.Logger.Error("database error", slog.Any("err", err))
 			return nil, err
 		}
-		if hh == nil {
+		if ud == nil {
 			impl.Logger.Warn("uploaddirectory does not exist validation error")
 			return nil, httperror.NewForBadRequestWithSingleField("id", "does not exist")
 		}
@@ -97,18 +98,21 @@ func (impl *UploadDirectoryControllerImpl) UpdateByID(ctx context.Context, reque
 		////
 
 		// Base
-		hh.TenantID = tid
-		hh.ModifiedAt = time.Now()
-		hh.ModifiedByUserID = userID
-		hh.ModifiedByUserName = userName
-		hh.ModifiedFromIPAddress = ipAddress
+		ud.TenantID = tid
+		ud.ModifiedAt = time.Now()
+		ud.ModifiedByUserID = userID
+		ud.ModifiedByUserName = userName
+		ud.ModifiedFromIPAddress = ipAddress
+		ud.UserID = userID
+		ud.UserName = userName
+		ud.UserLexicalName = userLexicalName
 
 		// Content
-		hh.Name = requestData.Name
-		hh.Description = requestData.Description
-		hh.SortNumber = requestData.SortNumber
+		ud.Name = requestData.Name
+		ud.Description = requestData.Description
+		ud.SortNumber = requestData.SortNumber
 
-		if err := impl.UploadDirectoryStorer.UpdateByID(sessCtx, hh); err != nil {
+		if err := impl.UploadDirectoryStorer.UpdateByID(sessCtx, ud); err != nil {
 			impl.Logger.Error("uploaddirectory update by id error", slog.Any("error", err))
 			return nil, err
 		}
@@ -123,7 +127,7 @@ func (impl *UploadDirectoryControllerImpl) UpdateByID(ctx context.Context, reque
 		//// Exit our transaction successfully.
 		////
 
-		return hh, nil
+		return ud, nil
 	}
 
 	// Start a transaction

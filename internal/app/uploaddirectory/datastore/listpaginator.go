@@ -25,6 +25,7 @@ type UploadDirectoryPaginationListFilter struct {
 
 	// Filter related.
 	TenantID   primitive.ObjectID
+	UserID     primitive.ObjectID
 	Status     int8
 	SearchText string
 }

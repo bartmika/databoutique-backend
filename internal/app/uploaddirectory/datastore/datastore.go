@@ -34,6 +34,9 @@ type UploadDirectory struct {
 	ModifiedByUserID      primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id,omitempty"`
 	ModifiedByUserName    string             `bson:"modified_by_user_name" json:"modified_by_user_name"`
 	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	UserID                primitive.ObjectID `bson:"user_id" json:"user_id"`
+	UserName              string             `bson:"user_name" json:"user_name"`
+	UserLexicalName       string             `bson:"user_lexical_name" json:"user_lexical_name"`
 }
 
 type UploadDirectoryListResult struct {
