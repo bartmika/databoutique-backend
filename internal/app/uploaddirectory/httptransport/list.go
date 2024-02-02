@@ -15,7 +15,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	f := &uploaddirectory_s.UploadDirectoryPaginationListFilter{
 		Cursor:    "",
 		PageSize:  25,
-		SortField: "sort_number",
+		SortField: "created_at",
 		SortOrder: 1, // 1=ascending | -1=descending
 	}
 

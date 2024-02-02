@@ -24,6 +24,9 @@ func (impl UploadFileStorerImpl) ListByFilter(ctx context.Context, f *UploadFile
 	if !f.TenantID.IsZero() {
 		filter["tenant_id"] = f.TenantID
 	}
+	if !f.UploadDirectoryID.IsZero() {
+		filter["upload_directory_id"] = f.UploadDirectoryID
+	}
 	if f.Name != "" {
 		filter["name"] = bson.M{"$regex": primitive.Regex{Pattern: f.Name, Options: "i"}}
 	}

@@ -7,6 +7,7 @@ import (
 
 	sub_s "github.com/bartmika/databoutique-backend/internal/app/uploadfile/datastore"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +45,16 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	description := query.Get("description")
 	if description != "" {
 		f.Description = description
+	}
+
+	uploadDirectoryIDStr := query.Get("upload_directory_id")
+	if uploadDirectoryIDStr != "" {
+		uploadDirectoryID, err := primitive.ObjectIDFromHex(uploadDirectoryIDStr)
+		if err != nil {
+			httperror.ResponseError(w, err)
+			return
+		}
+		f.UploadDirectoryID = uploadDirectoryID
 	}
 
 	m, err := h.Controller.ListByFilter(ctx, f)

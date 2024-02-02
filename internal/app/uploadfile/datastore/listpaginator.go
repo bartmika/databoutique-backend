@@ -25,10 +25,11 @@ type UploadFilePaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID   primitive.ObjectID
-	Status     int8
-	UUIDs      []string
-	SearchText string
+	TenantID          primitive.ObjectID
+	UploadDirectoryID primitive.ObjectID
+	Status            int8
+	UUIDs             []string
+	SearchText        string
 
 	Name        string
 	Description string
@@ -43,8 +44,8 @@ type UploadFilePaginationListFilter struct {
 // the customer records (meaning limited).
 type UploadFilePaginationListResult struct {
 	Results     []*UploadFile `json:"results"`
-	NextCursor  string           `json:"next_cursor"`
-	HasNextPage bool             `json:"has_next_page"`
+	NextCursor  string        `json:"next_cursor"`
+	HasNextPage bool          `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or

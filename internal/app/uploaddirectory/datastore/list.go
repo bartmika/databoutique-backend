@@ -23,12 +23,8 @@ func (impl UploadDirectoryStorerImpl) ListByFilter(ctx context.Context, f *Uploa
 		filter["tenant_id"] = f.TenantID
 	}
 	if !f.UserID.IsZero() {
-		filter["usert_id"] = f.UserID
+		filter["user_id"] = f.UserID
 	}
-
-	// if f.ExcludeArchived {
-	// 	filter["status"] = bson.M{"$ne": UploadDirectoryStatusArchived} // Do not list archived items! This code
-	// }
 	if f.Status != 0 {
 		filter["status"] = f.Status
 	}
