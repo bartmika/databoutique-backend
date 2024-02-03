@@ -3,12 +3,13 @@ package controller
 import (
 	"context"
 	"errors"
-
 	"log/slog"
 
 	"github.com/sashabaranov/go-openai"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	program_s "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 )
 
 func (impl *ExecutableControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
@@ -88,20 +89,27 @@ func (impl *ExecutableControllerImpl) DeleteByID(ctx context.Context, id primiti
 
 		// --- Assistant --- //
 
-		impl.Logger.Debug("beginning to delete assistant from openai...",
-			slog.Any("executable_id", exec.ID))
+		// Only delete the assistant from OpenAI if the program this executable
+		// is based on is customer document review.
+		if exec.ProgramBusinessFunction == program_s.ProgramBusinessFunctionCustomerDocumentReview {
+			impl.Logger.Debug("beginning to delete assistant from openai...",
+				slog.Any("executable_id", exec.ID))
 
-		if _, err := client.DeleteAssistant(sessCtx, exec.OpenAIAssistantID); err != nil {
-			impl.Logger.Error("failed deleting assistant from openai",
-				slog.String("executable_id", exec.OpenAIAssistantID),
+			if _, err := client.DeleteAssistant(sessCtx, exec.OpenAIAssistantID); err != nil {
+				impl.Logger.Error("failed deleting assistant from openai",
+					slog.String("assistant_id", exec.OpenAIAssistantID),
+					slog.String("executable_id", id.Hex()),
+					slog.Any("error", err))
+				return nil, err
+			}
+
+			impl.Logger.Debug("delete assistant from openai",
 				slog.String("assistant_id", id.Hex()),
-				slog.Any("error", err))
-			return nil, err
+				slog.String("executable_id", exec.ID.Hex()))
+		} else {
+			impl.Logger.Debug("skipped deleting assistant from openai",
+				slog.String("executable_id", exec.ID.Hex()))
 		}
-
-		impl.Logger.Debug("delete assistant from openai",
-			slog.String("assistant_id", id.Hex()),
-			slog.String("executable_id", exec.ID.Hex()))
 
 		// --- Threads --- //
 

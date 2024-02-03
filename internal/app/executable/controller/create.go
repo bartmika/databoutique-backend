@@ -175,6 +175,7 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		// Add base.
 		exec.ProgramID = p.ID
 		exec.ProgramName = p.Name
+		exec.ProgramBusinessFunction = p.BusinessFunction
 		exec.Question = requestData.Question
 		exec.Status = executable_s.ExecutableStatusProcessing
 		exec.OpenAIAssistantID = ""

@@ -24,6 +24,7 @@ type Executable struct {
 	TenantID                primitive.ObjectID    `bson:"tenant_id" json:"tenant_id"`
 	ProgramID               primitive.ObjectID    `bson:"program_id" json:"program_id"`
 	ProgramName             string                `bson:"program_name" json:"program_name"`
+	ProgramBusinessFunction int8                  `bson:"program_business_function" json:"program_business_function"`
 	Question                string                `bson:"question" json:"question"`
 	Status                  int8                  `bson:"status" json:"status"`
 	PublicID                uint64                `bson:"public_id" json:"public_id"`
