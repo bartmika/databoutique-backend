@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	program_s "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
+	uploaddirectory_s "github.com/bartmika/databoutique-backend/internal/app/uploaddirectory/datastore"
 	"github.com/bartmika/databoutique-backend/internal/config/constants"
 	"github.com/bartmika/databoutique-backend/internal/utils/httperror"
 )
@@ -29,9 +32,6 @@ func (impl *ExecutableControllerImpl) validateCreateRequest(ctx context.Context,
 	}
 	if dirtyData.UserID.IsZero() {
 		e["user_id"] = "missing value"
-	}
-	if len(dirtyData.UploadDirectoryIDs) == 0 {
-		e["upload_directory_ids"] = "missing value"
 	}
 	if dirtyData.Question == "" {
 		e["question"] = "missing value"
@@ -62,8 +62,8 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 	// 4. Apply the PID to the record.
 	// 5. Unlock this `Create` function to be usable again by other calls after
 	//    the function successfully submits the record into our system.
-	impl.Kmutex.Lockf("create-program-by-tenant-%s", tid.Hex())
-	defer impl.Kmutex.Unlockf("create-program-by-tenant-%s", tid.Hex())
+	impl.Kmutex.Lockf("create-executable-by-tenant-%s", tid.Hex())
+	defer impl.Kmutex.Unlockf("create-executable-by-tenant-%s", tid.Hex())
 
 	//
 	// Perform our validation and return validation error on any issues detected.
@@ -124,15 +124,34 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 			return nil, err
 		}
 
-		uploadFolders, err := impl.UploadDirectoryStorer.ListByIDs(sessCtx, requestData.UploadDirectoryIDs)
-		if err != nil {
-			impl.Logger.Error("failed getting folders",
-				slog.Any("upload_directory_ids", requestData.UploadDirectoryIDs),
-				slog.Any("error", err))
-			return nil, err
+		// Handle the two cases, either the customer provides the files or we
+		// use the admin files.
+		var uploadFolders *uploaddirectory_s.UploadDirectoryPaginationListResult
+		if p.BusinessFunction == program_s.ProgramBusinessFunctionCustomerDocumentReview {
+			uploadFolders, err = impl.UploadDirectoryStorer.ListByIDs(sessCtx, requestData.UploadDirectoryIDs)
+			if err != nil {
+				impl.Logger.Error("failed getting folders",
+					slog.Any("upload_directory_ids", requestData.UploadDirectoryIDs),
+					slog.Any("error", err))
+				return nil, err
+			}
+
+			// DEFENSIVE CODE: If the program is `customer document review` and
+			// there are no documents provided by the customer then we will
+			// generate a 400 bad request.
+			if len(uploadFolders.Results) == 0 {
+				return nil, httperror.NewForSingleField(http.StatusBadRequest, "upload_directory_ids", "missing value")
+			}
 		}
-		if len(uploadFolders.Results) > 0 {
-			//TODO: Implement security if user is customer to not look in folders that don't belong to them.
+		if p.BusinessFunction == program_s.ProgramBusinessFunctionAdmintorDocumentReview {
+			uploadFolderIDs := p.GetUploadDirectoryIDs()
+			uploadFolders, err = impl.UploadDirectoryStorer.ListByIDs(sessCtx, uploadFolderIDs)
+			if err != nil {
+				impl.Logger.Error("failed getting folders",
+					slog.Any("upload_directory_ids", requestData.UploadDirectoryIDs),
+					slog.Any("error", err))
+				return nil, err
+			}
 		}
 
 		////
@@ -163,39 +182,41 @@ func (impl *ExecutableControllerImpl) Create(ctx context.Context, requestData *E
 		exec.UserName = u.Name
 		exec.UserLexicalName = u.LexicalName
 
-		// Add related.
-		// 1. Iterate through all the selected folders and make a copy of them
-		// 2. Iterate through all the files within the selected folders and
-		//    make a copy of them.
-		// 3. Save the copy to our executable.
-		// 4. Add initial question into our messages list.
-		exec.Directories = make([]*executable_s.UploadFolderOption, 0)
-		for _, folder := range uploadFolders.Results {
-			dir := &executable_s.UploadFolderOption{
-				ID:          folder.ID,
-				Name:        folder.Name,
-				Description: folder.Description,
-				Status:      folder.Status,
-				Files:       make([]*executable_s.UploadFileOption, 0),
-			}
-			dirfiles, err := impl.UploadFileStorer.ListByUploadDirectoryID(ctx, folder.ID)
-			if err != nil {
-				impl.Logger.Error("failed getting files within folder",
-					slog.Any("upload_directory_id", folder.ID),
-					slog.Any("error", err))
-				return nil, err
-			}
-			for _, dirfile := range dirfiles.Results {
-				file := &executable_s.UploadFileOption{
-					ID:           dirfile.ID,
-					Name:         dirfile.Name,
-					Description:  dirfile.Description,
-					OpenAIFileID: dirfile.OpenAIFileID,
-					Status:       dirfile.Status,
+		if len(uploadFolders.Results) > 0 {
+			// Add related.
+			// 1. Iterate through all the selected folders and make a copy of them
+			// 2. Iterate through all the files within the selected folders and
+			//    make a copy of them.
+			// 3. Save the copy to our executable.
+			// 4. Add initial question into our messages list.
+			exec.Directories = make([]*executable_s.UploadFolderOption, 0)
+			for _, folder := range uploadFolders.Results {
+				dir := &executable_s.UploadFolderOption{
+					ID:          folder.ID,
+					Name:        folder.Name,
+					Description: folder.Description,
+					Status:      folder.Status,
+					Files:       make([]*executable_s.UploadFileOption, 0),
 				}
-				dir.Files = append(dir.Files, file)
+				dirfiles, err := impl.UploadFileStorer.ListByUploadDirectoryID(ctx, folder.ID)
+				if err != nil {
+					impl.Logger.Error("failed getting files within folder",
+						slog.Any("upload_directory_id", folder.ID),
+						slog.Any("error", err))
+					return nil, err
+				}
+				for _, dirfile := range dirfiles.Results {
+					file := &executable_s.UploadFileOption{
+						ID:           dirfile.ID,
+						Name:         dirfile.Name,
+						Description:  dirfile.Description,
+						OpenAIFileID: dirfile.OpenAIFileID,
+						Status:       dirfile.Status,
+					}
+					dir.Files = append(dir.Files, file)
+				}
+				exec.Directories = append(exec.Directories, dir)
 			}
-			exec.Directories = append(exec.Directories, dir)
 		}
 
 		msg := &executable_s.Message{

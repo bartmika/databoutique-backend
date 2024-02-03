@@ -9,6 +9,7 @@ import (
 	"time"
 
 	executable_s "github.com/bartmika/databoutique-backend/internal/app/executable/datastore"
+	program_s "github.com/bartmika/databoutique-backend/internal/app/program/datastore"
 	"github.com/sashabaranov/go-openai"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -75,40 +76,55 @@ func (impl *ExecutableControllerImpl) createExecutableInBackgroundForOpenAI(exec
 		//// Create assistant.
 		////
 
-		impl.Logger.Debug("beginning to create assistant...",
-			slog.Any("executable_id", exec.ID))
+		// --- CASE 1 --- //
 
-		aname := fmt.Sprintf("program_%s_executable_%s", exec.ProgramID.Hex(), exec.ID.Hex())
-		assistant, err := client.CreateAssistant(context.Background(), openai.AssistantRequest{
-			Name:         &aname,
-			Model:        p.Model,
-			Instructions: &p.Instructions,
-			Tools:        []openai.AssistantTool{{Type: openai.AssistantToolTypeRetrieval}},
-			FileIDs:      fileIDs,
-		})
-		if err != nil {
-			impl.Logger.Error("failed creating assistant",
+		if p.BusinessFunction == program_s.ProgramBusinessFunctionCustomerDocumentReview {
+			impl.Logger.Debug("beginning to create assistant...",
+				slog.Any("executable_id", exec.ID))
+
+			aname := fmt.Sprintf("program_%s_executable_%s", exec.ProgramID.Hex(), exec.ID.Hex())
+			assistant, err := client.CreateAssistant(context.Background(), openai.AssistantRequest{
+				Name:         &aname,
+				Model:        p.Model,
+				Instructions: &p.Instructions,
+				Tools:        []openai.AssistantTool{{Type: openai.AssistantToolTypeRetrieval}},
+				FileIDs:      fileIDs,
+			})
+			if err != nil {
+				impl.Logger.Error("failed creating assistant",
+					slog.Any("executable_id", exec.ID),
+					slog.Any("name", assistant.Name),
+					slog.Any("model", assistant.Model),
+					slog.Any("instructions", assistant.Instructions),
+					slog.Any("tools", assistant.Tools),
+					slog.Any("file_ids", assistant.FileIDs),
+					slog.Any("error", err))
+				return nil, err
+			}
+			if isStructEmpty(assistant) {
+				impl.Logger.Error("no openai assistant returned",
+					slog.Any("executable_id", exec.ID),
+					slog.Any("assistant", assistant))
+				return "", errors.New("no openai file returned")
+			}
+
+			exec.OpenAIAssistantID = assistant.ID
+
+			impl.Logger.Debug("finished creating assistant",
 				slog.Any("executable_id", exec.ID),
-				slog.Any("name", assistant.Name),
-				slog.Any("model", assistant.Model),
-				slog.Any("instructions", assistant.Instructions),
-				slog.Any("tools", assistant.Tools),
-				slog.Any("file_ids", assistant.FileIDs),
-				slog.Any("error", err))
-			return nil, err
+				slog.Any("assistant_id", assistant.ID))
 		}
-		if isStructEmpty(assistant) {
-			impl.Logger.Error("no openai assistant returned",
+
+		if p.BusinessFunction == program_s.ProgramBusinessFunctionAdmintorDocumentReview {
+			impl.Logger.Debug("reusing existing assistant...",
+				slog.Any("executable_id", exec.ID))
+
+			exec.OpenAIAssistantID = p.OpenAIAssistantID
+
+			impl.Logger.Debug("finished reusing assistant",
 				slog.Any("executable_id", exec.ID),
-				slog.Any("assistant", assistant))
-			return "", errors.New("no openai file returned")
+				slog.Any("assistant_id", p.OpenAIAssistantID))
 		}
-
-		exec.OpenAIAssistantID = assistant.ID
-
-		impl.Logger.Debug("finished creating assistant",
-			slog.Any("executable_id", exec.ID),
-			slog.Any("assistant_id", assistant.ID))
 
 		////
 		//// Create assistant thread.
