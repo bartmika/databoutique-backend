@@ -71,8 +71,8 @@ func (impl *ProgramControllerImpl) Create(ctx context.Context, requestData *Prog
 	// 4. Apply the PID to the record.
 	// 5. Unlock this `Create` function to be usable again by other calls after
 	//    the function successfully submits the record into our system.
-	impl.Kmutex.Lockf("create-how-hear-about-us-item-by-tenant-%s", tid.Hex())
-	defer impl.Kmutex.Unlockf("create-how-hear-about-us-item-by-tenant-%s", tid.Hex())
+	impl.Kmutex.Lockf("program-by-tenant-%s", tid.Hex())
+	defer impl.Kmutex.Unlockf("program-by-tenant-%s", tid.Hex())
 
 	//
 	// Perform our validation and return validation error on any issues detected.
