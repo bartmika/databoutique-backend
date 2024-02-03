@@ -74,10 +74,23 @@ func (impl *GatewayControllerImpl) initializeAccounts(ctx context.Context) error
 		impl.Logger.Debug("executive user created.",
 			slog.Any("_id", admin.ID),
 			slog.String("name", admin.Name),
-			slog.String("email", admin.Email),
-			slog.String("password_hash_algorithm", admin.PasswordHashAlgorithm),
-			slog.String("password_hash", admin.PasswordHash))
+			slog.String("email", admin.Email))
 	}
+
+	// // FOR DEBUGGING PURPOSES ONLY.
+	// creds, err := impl.TenantStorer.GetOpenAICredentialsByID(ctx, impl.Config.InitialAccount.AdminTenantID)
+	// if err != nil {
+	// 	impl.Logger.Error("failed getting openai credentials",
+	// 		slog.Any("error", err))
+	// 	return err
+	// }
+	// if creds != nil {
+	// 	client := openai.NewOrgClient(creds.APIKey, creds.OrgKey)
+	// 	if _, err := client.DeleteThread(ctx, "thread_xxx"); err != nil {
+	// 		return err
+	// 	}
+	// }
+
 	return nil
 }
 
